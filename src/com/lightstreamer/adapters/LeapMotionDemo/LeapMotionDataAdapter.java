@@ -93,7 +93,7 @@ public class LeapMotionDataAdapter implements SmartDataProvider, /*UniverseListe
             logger.debug("User subscription: " + item);
             
             //item comes from client as user_nick, is modified by metadata as user_id|nick
-            String[] ids = item.substring(Constants.USER_SUBSCRIPTION.length()).split("|");
+            String[] ids = item.substring(Constants.USER_SUBSCRIPTION.length()).split(Constants.SPLIT_CHAR);
             if (ids.length != 2) {
                 throw new SubscriptionException("Unexpected user item: review getItems metadata implementation");
             }
@@ -131,7 +131,7 @@ public class LeapMotionDataAdapter implements SmartDataProvider, /*UniverseListe
         if (item.indexOf(Constants.USER_SUBSCRIPTION) == 0) {
             logger.debug("User unsubscription: " + item);
             
-            String[] ids = item.substring(Constants.USER_SUBSCRIPTION.length()).split("|");
+            String[] ids = item.substring(Constants.USER_SUBSCRIPTION.length()).split(Constants.SPLIT_CHAR);
             if (ids.length != 2) {
                 return;
             }
