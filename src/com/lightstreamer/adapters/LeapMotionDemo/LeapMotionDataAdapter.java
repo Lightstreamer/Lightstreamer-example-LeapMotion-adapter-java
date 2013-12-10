@@ -18,16 +18,10 @@ import com.lightstreamer.interfaces.data.SubscriptionException;
 
 public class LeapMotionDataAdapter implements SmartDataProvider, /*UniverseListener,*/ ChatRoomListener {
 
-    private static String USER_SUBSCRIPTION = "user_";
-    private static String ROOMPOSITION_SUBSCRIPTION = "roompos_";
-    private static String ROOMCHATLIST_SUBSCRIPTION = "roomchatlist_";
-    
     public static final ConcurrentHashMap<String, LeapMotionDataAdapter> feedMap =
             new ConcurrentHashMap<String, LeapMotionDataAdapter>();
-    
-    private static final String LOGGER_CAT = "LS_demos_Logger.LeapDemo";
+   
     public Logger logger;
-    //private static final String TRACER_CAT = "LS_LeapDemo_Logger.tracer";
     //public Logger tracer;
     
     //private Universe universe = new Universe();
@@ -47,7 +41,7 @@ public class LeapMotionDataAdapter implements SmartDataProvider, /*UniverseListe
             }
         } //else the bridge to logback is expected
         
-        logger = Logger.getLogger(LOGGER_CAT);
+        logger = Logger.getLogger(Constants.LOGGER_CAT);
         //tracer = Logger.getLogger(TRACER_CAT);
         
         logger.info("Adapter Logger start.");
@@ -78,11 +72,11 @@ public class LeapMotionDataAdapter implements SmartDataProvider, /*UniverseListe
     public boolean isSnapshotAvailable(String item)
             throws SubscriptionException {
 
-        if (item.indexOf(USER_SUBSCRIPTION) == 0) { 
+        if (item.indexOf(Constants.USER_SUBSCRIPTION) == 0) { 
             return false; //currently does not generate any event at all (and never will)
-        } else if (item.indexOf(ROOMPOSITION_SUBSCRIPTION) == 0) {
+        } else if (item.indexOf(Constants.ROOMPOSITION_SUBSCRIPTION) == 0) {
             return false; //currently does not generate any event at all TODO
-        } else if (item.indexOf(ROOMCHATLIST_SUBSCRIPTION) == 0) {
+        } else if (item.indexOf(Constants.ROOMCHATLIST_SUBSCRIPTION) == 0) {
             return true;
         } else {
             return true; 
@@ -94,41 +88,39 @@ public class LeapMotionDataAdapter implements SmartDataProvider, /*UniverseListe
     public synchronized void subscribe(String item, Object handle, boolean needsIterator)
             throws SubscriptionException, FailureException {
 
-        if (item.indexOf(USER_SUBSCRIPTION) == 0) { 
+        if (item.indexOf(Constants.USER_SUBSCRIPTION) == 0) { 
             //DISTINCT used only to signal presence
             logger.debug("User subscription: " + item);
             
             //item comes from client as user_nick, is modified by metadata as user_id|nick
-            String[] ids = item.substring(USER_SUBSCRIPTION.length()).split("|");
+            String[] ids = item.substring(Constants.USER_SUBSCRIPTION.length()).split("|");
             if (ids.length != 2) {
                 throw new SubscriptionException("Unexpected user item: review getItems metadata implementation");
             }
             
             //user is created on subscription and destroyed on unsubscription
-            chat.addUser(ids[0],ids[1],handle); 
-
+            chat.startUserMessageListen(ids[0],handle);
+            chat.changeUserNick(ids[0],ids[1]);
             
-        } else if (item.indexOf(ROOMPOSITION_SUBSCRIPTION) == 0) {
+        } else if (item.indexOf(Constants.ROOMPOSITION_SUBSCRIPTION) == 0) {
             //COMMAND contains list of users and object positions
             logger.debug("Position subscription: " + item);
             
-            String roomId = item.substring(ROOMPOSITION_SUBSCRIPTION.length());
+            String roomId = item.substring(Constants.ROOMPOSITION_SUBSCRIPTION.length());
             
             // TODO
             
-        } else if (item.indexOf(ROOMCHATLIST_SUBSCRIPTION) == 0) {
+        } else if (item.indexOf(Constants.ROOMCHATLIST_SUBSCRIPTION) == 0) {
             //COMMAND contains user statuses and user nicks
             logger.debug("Room list subscription: " + item);
             
-            String roomId = item.substring(ROOMCHATLIST_SUBSCRIPTION.length());
+            String roomId = item.substring(Constants.ROOMCHATLIST_SUBSCRIPTION.length());
             chat.startRoomListen(roomId,handle);// will add the room if non-existent (room may exist if a user entered it even if no one is listening to it)
 
         } else {
             //MERGE subscription for user status and nick 
             logger.debug("User status subscription: " + item);
-            
-            chat.startStatusListen(item,handle);
-            
+            chat.startUserStatusListen(item,handle);
         }
     }
 
@@ -136,31 +128,32 @@ public class LeapMotionDataAdapter implements SmartDataProvider, /*UniverseListe
     public synchronized void unsubscribe(String item) throws SubscriptionException,
             FailureException {
         
-        if (item.indexOf(USER_SUBSCRIPTION) == 0) {
+        if (item.indexOf(Constants.USER_SUBSCRIPTION) == 0) {
             logger.debug("User unsubscription: " + item);
             
-            String[] ids = item.substring(USER_SUBSCRIPTION.length()).split("|");
+            String[] ids = item.substring(Constants.USER_SUBSCRIPTION.length()).split("|");
             if (ids.length != 2) {
                 return;
             }
+            chat.stopUserMessageListen(ids[0]);
             chat.removeUser(ids[0]);
             
-        } else if (item.indexOf(ROOMPOSITION_SUBSCRIPTION) == 0) {
+        } else if (item.indexOf(Constants.ROOMPOSITION_SUBSCRIPTION) == 0) {
             logger.debug("Position unsubscription: " + item);
             
-            String roomId = item.substring(ROOMPOSITION_SUBSCRIPTION.length());
+            String roomId = item.substring(Constants.ROOMPOSITION_SUBSCRIPTION.length());
             
             // TODO create 3d room
             
-        } else if (item.indexOf(ROOMCHATLIST_SUBSCRIPTION) == 0) {
+        } else if (item.indexOf(Constants.ROOMCHATLIST_SUBSCRIPTION) == 0) {
             logger.debug("Room list unsubscription: " + item);
             
-            String roomId = item.substring(ROOMCHATLIST_SUBSCRIPTION.length());
+            String roomId = item.substring(Constants.ROOMCHATLIST_SUBSCRIPTION.length());
             chat.stopRoomListen(roomId);
         } else {
             logger.debug("User status unsubscription: " + item);
             
-            chat.stopStatusListen(item);
+            chat.stopUserStatusListen(item);
         }
     }
     
@@ -230,7 +223,7 @@ public class LeapMotionDataAdapter implements SmartDataProvider, /*UniverseListe
     }
     
     @Override
-    public void onNewUser(String id, String nick) {
+    public void onNewUser(String id) {
         //do nothing
         logger.debug(id + " is ready");
     }

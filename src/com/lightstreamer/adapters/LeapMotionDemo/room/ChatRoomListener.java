@@ -11,7 +11,7 @@ public interface ChatRoomListener {
     public void onUserMessage(String id, String message, String room, Object roomHandle, boolean realTimeEvent); //not implemented
     public void onPrivateMessage(String fromId, String toId, String message, Object userHandle); //not implemented  
     
-    public void onNewUser(String id, String nick);
+    public void onNewUser(String id);
     public void onUserDeleted(String id);
     
 }
