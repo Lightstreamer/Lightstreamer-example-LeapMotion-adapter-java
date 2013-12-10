@@ -53,8 +53,46 @@ public class ChatRoom {
         }
     }
     
-
-    public void startUserMessageListen(String id, Object handle) {
+    public void changeUserStatus(String id, String status, String statusId) {
+        synchronized(users) {
+            if (!users.containsKey(id)) {
+                return;
+            }
+            User user = users.get(id);
+            user.setStatus(status,statusId);
+        }
+    }
+    
+    public void enterRoom(String id, String roomId) {
+        synchronized(users) {
+            if (!users.containsKey(id)) {
+                return;
+            }
+            User user = users.get(id);
+            Room room = this.getRoomForced(roomId);
+            user.enterRoom(room);
+            
+        }
+    }
+    
+    public void leaveRoom(String id, String roomId) {
+        synchronized(users) {
+            synchronized(rooms) {
+                if (!users.containsKey(id) || !rooms.containsKey(roomId)) {
+                    return;
+                }
+                User user = users.get(id);
+                Room room = rooms.get(roomId);
+                user.leaveRoom(room);
+                
+                if (room.isEmpty() && !room.isListened()) {
+                    rooms.remove(roomId);
+                }
+            }
+        }
+    }
+    
+    private User getUserForced(String id) {
         synchronized(users) {
             User user;
             if (!users.containsKey(id)) {
@@ -62,18 +100,21 @@ public class ChatRoom {
             } else {
                 user = users.get(id);
             }
+            return user;
+        }
+    }
+    
+
+    public void startUserMessageListen(String id, Object handle) {
+        synchronized(users) {
+            User user = this.getUserForced(id);
             user.setHandle(handle);
         }
     }
     
     public void startUserStatusListen(String id, Object userStatusHandle) {
         synchronized(users) {
-            User user = null;
-            if (!users.containsKey(id)) {
-                user = this.addUser(id);
-            } else {
-                user = users.get(id);
-            }
+            User user = this.getUserForced(id);
             user.setStatusHandle(userStatusHandle);
             
             this.sendUserStatusEvent(id, user.getNick(), user.getStatusId(), user.getStatus(), userStatusHandle, SNAPSHOT);
@@ -91,7 +132,7 @@ public class ChatRoom {
                 Iterator<Room> userRooms = user.getRooms();
                 while(userRooms.hasNext()) {
                     Room room = userRooms.next();
-                    room.removeUser(id);
+                    user.leaveRoom(room);
                 }
             }
 
@@ -130,10 +171,7 @@ public class ChatRoom {
             }
         }
     }
-    
-    
-   
-    
+        
     //synchronized(users) {
     private void sendUserStatusEvent(final String id, final String nick, final String statusId, final String status, final Object userStatusHandle, final boolean realTimeEvent) {
         executor.execute(new Runnable() {
@@ -143,8 +181,7 @@ public class ChatRoom {
         });
     }
     
-    public void startRoomListen(final String roomId, final Object roomStatusHandle) {
-        
+    private Room getRoomForced(String roomId) {
         synchronized(rooms) {
             Room room = null;
             if (!rooms.containsKey(roomId)) {
@@ -153,6 +190,14 @@ public class ChatRoom {
             } else {
                 room = rooms.get(roomId);
             }
+            return room;
+        }
+    }
+    
+    public void startRoomListen(final String roomId, final Object roomStatusHandle) {
+        
+        synchronized(rooms) {
+            Room room = this.getRoomForced(roomId);
             
             room.setStatusHandle(roomStatusHandle);
             
@@ -176,10 +221,10 @@ public class ChatRoom {
                 return;
             }
             Room room = rooms.get(roomId);
-            if (room.isEmpty()) {
+            room.setStatusHandle(null);
+            if (room.isEmpty() && !room.isListened()) {
                 rooms.remove(roomId);
             }
-            room.setStatusHandle(null);
         }
     }
 
@@ -219,6 +264,16 @@ public class ChatRoom {
             this.id = id;
         }
         
+        public void enterRoom(Room room) {
+            room.addUser(this.id);
+            this.rooms.add(room);
+        }
+
+        public void leaveRoom(Room room) {
+            room.removeUser(this.id);
+            this.rooms.remove(room);
+        }
+
         public String getStatusId() {
             return this.statusId;
         }
@@ -227,7 +282,16 @@ public class ChatRoom {
             this.nick = nick;
             
             if (this.statusHandle != null) {
-                sendUserStatusEvent(this.id, this.nick, this.statusId, this.status, this.statusHandle, REALTIME);
+                sendUserStatusEvent(this.id, this.nick, null, null, this.statusHandle, REALTIME);
+            }
+        }
+        
+        public void setStatus(String status, String statusId) {
+            this.status = status;
+            this.statusId = statusId;
+            
+            if (this.statusHandle != null) {
+                sendUserStatusEvent(this.id, null, this.statusId, this.status, this.statusHandle, REALTIME);
             }
         }
         
@@ -268,7 +332,7 @@ public class ChatRoom {
         public Room(String roomId) {
             this.roomId = roomId;
         }
-        
+       
         public boolean isEmpty() {
             return users.isEmpty();
         }
@@ -284,8 +348,15 @@ public class ChatRoom {
         public void setHandle(Object messageHandle) {
             this.messageHandle = messageHandle;
         }
+        
+        void addUser(String id) {
+            this.users.add(id);
+            if (this.statusHandle != null) {
+                sendRoomStatusEvent(id, this.roomId, this.statusHandle, ENTER, REALTIME);
+            }
+        }
 
-        public void removeUser(String id) {
+        void removeUser(String id) {
             this.users.remove(id);
             if (this.statusHandle != null) {
                 sendRoomStatusEvent(id, this.roomId, this.statusHandle, EXIT, REALTIME);
@@ -298,6 +369,8 @@ public class ChatRoom {
         
 
     }
+
+    
 
     
 }

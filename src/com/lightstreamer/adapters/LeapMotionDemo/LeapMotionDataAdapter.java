@@ -67,6 +67,9 @@ public class LeapMotionDataAdapter implements SmartDataProvider, /*UniverseListe
         this.listener = listener;
     }
 
+    ChatRoom getChatFeed() {
+        return this.chat;
+    }
 
     @Override
     public boolean isSnapshotAvailable(String item)
@@ -202,9 +205,13 @@ public class LeapMotionDataAdapter implements SmartDataProvider, /*UniverseListe
         logger.debug(id + " has new status/nick");
         
         HashMap<String, String> update = new HashMap<String, String>();
-        update.put("nick", nick);
-        update.put("status", status);
-        update.put("statusId", statusId);
+        if (nick != null) {
+            update.put("nick", nick);
+        }
+        if (status != null) {
+            update.put("status", status);
+            update.put("statusId", statusId);
+        }
         
         this.listener.smartUpdate(userStatusHandle, update, !realTimeEvent);
         
