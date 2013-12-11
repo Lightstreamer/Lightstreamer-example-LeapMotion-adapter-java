@@ -18,14 +18,15 @@
 
 package com.lightstreamer.adapters.LeapMotionDemo.engine3D;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.HashMap;
+
 import com.croftsoft.core.lang.EnumUnknownException;
 import com.croftsoft.core.math.MathLib;
 import com.croftsoft.core.math.axis.AxisAngle;
 import com.croftsoft.core.math.axis.AxisAngleImp;
 import com.croftsoft.core.math.axis.AxisAngleMut;
-import com.lightstreamer.adapters.LeapMotionDemo.engine3D.IBody.Axis;
-import com.lightstreamer.adapters.LeapMotionDemo.engine3D.IBody.Rotation;
-import com.lightstreamer.adapters.LeapMotionDemo.engine3D.IBody.Translation;
 
 public class BaseModelBody implements IBody {
 
@@ -35,62 +36,63 @@ public class BaseModelBody implements IBody {
     private static final double WORLD_SIZE_Y = 90;
     private static final double WORLD_SIZE_Z = 120;
     
-    private String nickName = "";
-    private String origName = "";
-    
-    private String lastMsg = "";
+    private String id;
 
     private long    lifeSpan = 0;
     private long    lastCmdRcvd = 0;
     
     private double  x, y, z;                                // position         Vector3
+    
     private double  vX, vY, vZ;                             // velocity         Vector3
     private final AxisAngleMut  axisAngle;                  // Spin             Quaternion/Matrix3x3
     private double  deltaRotX, deltaRotY, deltaRotZ;        // angularMomentum  Vector3
 
-    public BaseModelBody() {
-        this.axisAngle = new AxisAngleImp(); 
-        this.x = (double)((Math.random() * 50) - 25);
-        this.y = (double)((Math.random() * 50) - 25);
-        this.z = (double)((Math.random() * 50) - 25);
+    public BaseModelBody(String id) {
+        this(id,new AxisAngleImp(),
+                (double)((Math.random() * 50) - 25),(double)((Math.random() * 50) - 25),(double)((Math.random() * 50) - 25));
     }
     
-    public BaseModelBody(final AxisAngle axisAngle, final double x, final double y, final double z) {
+    public BaseModelBody(BaseModelBody orig) {
+        this(orig.getId(),orig.getAxisAngle(),
+                orig.getX(),orig.getY(),orig.getZ(),
+                orig.getvX(),orig.getvY(),orig.getvZ(),
+                orig.getDeltaRotX(),orig.getDeltaRotY(),orig.getDeltaRotZ());
+    }
+    
+    public BaseModelBody(String id, AxisAngle axisAngle, double x, double y, double z) {
+        this(id,axisAngle,x,y,z,0,0,0,0,0,0);
+    }
+    
+    public BaseModelBody(String id, AxisAngle axisAngle, 
+            double x, double y, double z, 
+            double vX, double vY, double vZ, 
+            double deltaRotX, double deltaRotY, double deltaRotZ) {
+        
+        this.id = id;
         
         this.axisAngle = new AxisAngleImp(axisAngle);
-    
+        
         this.x = x;    
         this.y = y;
         this.z = z;
+        
+        this.vX = vX;
+        this.vY = vY;
+        this.vZ = vZ;
+        
+        this.deltaRotX = deltaRotX;
+        this.deltaRotY = deltaRotY;
+        this.deltaRotZ = deltaRotZ;
+        
     }
     
-    public String getOrigName() {
-        return origName;
-    }
-    
-    public String getNickName() {
-        return nickName;
-    }
-
-    public String getLastMsg() {
-        return lastMsg;
-    }
-
-    public void setLastMsg(String lastMsg) {
-        this.lastMsg = lastMsg;
-    }
-    
-    public void setNickName(String nickName) {
-        if ( this.nickName.equals("") ) {
-            this.origName = nickName;
-        }
-        this.nickName = nickName;
+    public String getId() {
+        return this.id;
     }
     
     public long getLifeSpan() {
         return lifeSpan;
     }
-    
     
     @Override
     public AxisAngle getAxisAngle() {
@@ -298,5 +300,52 @@ public class BaseModelBody implements IBody {
         }
         this.lastCmdRcvd = this.lifeSpan;
     }
+    
+    public void block() {
+        //TODO 
+    }
+    
+    public void forcePosition() {
+        //TODO
+    }
+    
+    private static byte[] toByteArray(double value) {
+        byte[] bytes = new byte[8];
+        ByteBuffer.wrap(bytes).putDouble(value);
+        return bytes;
+    }
+    
+    private static String toBase64(double value) throws IOException {
+        String s = (new Base64Manager()).encodeBytes(toByteArray((float)value),true);
+        return s.substring(0, s.indexOf("="));
+    }
+    
+    public void fillPositionMap(HashMap<String,String> model) {
+        try {
+            model.put("posX", toBase64(this.x));
+            model.put("posY", toBase64(this.y));
+            model.put("posZ", toBase64(this.z));
+            
+            model.put("rotX", toBase64(this.axisAngle.toQuat().getX()));
+            model.put("rotY", toBase64(this.axisAngle.toQuat().getY()));
+            model.put("rotZ", toBase64(this.axisAngle.toQuat().getZ()));
+            model.put("rotW", toBase64(this.axisAngle.toQuat().getW()));
+            
+        } catch (IOException e) {
+            //TODO ?
+        }
+    }
+    
+    public void fillImpulseMap(HashMap<String,String> model) {
+        model.put("Vx", String.valueOf(this.vX));
+        model.put("Vy", String.valueOf(this.vY));
+        model.put("Vz", String.valueOf(this.vZ));
+        
+        model.put("momx", String.valueOf(this.deltaRotX));
+        model.put("momy", String.valueOf(this.deltaRotY));
+        model.put("momz", String.valueOf(this.deltaRotZ));
+    }
+    
+  
 
 }
