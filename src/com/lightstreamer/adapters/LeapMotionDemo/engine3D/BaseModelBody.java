@@ -86,6 +86,8 @@ public class BaseModelBody implements IBody {
         
     }
     
+    // --> simple getters/setters
+    
     public String getId() {
         return this.id;
     }
@@ -161,6 +163,8 @@ public class BaseModelBody implements IBody {
     public long getInactivityPeriod() {
         return (this.lifeSpan - this.lastCmdRcvd);
     }
+    
+    // --> model transformations
     
     @Override
     public void rotate(AxisAngle axisAngleRot) {
@@ -253,6 +257,8 @@ public class BaseModelBody implements IBody {
 
     }
     
+    //user inputs -->
+    
     public void setImpulse(Axis axis, double intensity) {
         switch ( axis )
         {
@@ -302,12 +308,22 @@ public class BaseModelBody implements IBody {
     }
     
     public void block() {
-        //TODO 
+        this.vX = 0;
+        this.vY = 0;
+        this.vZ = 0;
+        
+        this.deltaRotX = 0;
+        this.deltaRotY = 0;
+        this.deltaRotZ = 0;
     }
     
-    public void forcePosition() {
-        //TODO
+    public void forcePosition(double x, double y, double z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
     }
+    
+    // data extraction -->
     
     private static byte[] toByteArray(double value) {
         byte[] bytes = new byte[8];
