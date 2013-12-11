@@ -73,7 +73,7 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
             if (split[i].indexOf(Constants.USER_SUBSCRIPTION) == 0) {
                 if (split[i].indexOf(Constants.SPLIT_CHAR) > -1) {
                     throw new ItemsException("Unexpected "+Constants.SPLIT_CHAR+" charater in item name.");
-                }
+                } //we may forgive this and later split @ the first occorunce of the SPLIT_CHAR
                 
                 String nick = split[i].substring(Constants.USER_SUBSCRIPTION.length());
                 
@@ -89,7 +89,7 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
                     }
                     id = sessionInfo.get(Constants.USER_ID);
                     if (id == null) {
-                        id = String.valueOf(nextId++);
+                        id = "u"+(nextId++);
                         sessionInfo.put(Constants.USER_ID, id);
                     }
                 }
@@ -104,19 +104,18 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
     
     @Override
     public boolean modeMayBeAllowed(String item, Mode mode) {
-        if (item.indexOf(Constants.USER_SUBSCRIPTION) == 0 && mode != Mode.DISTINCT) { 
-            return false;
+        if (item.indexOf(Constants.USER_SUBSCRIPTION) == 0 && mode == Mode.DISTINCT) { 
+            return true;
             
-        } else if (item.indexOf(Constants.ROOMPOSITION_SUBSCRIPTION) == 0 && mode != Mode.COMMAND) {
-            return false;
+        } else if (item.indexOf(Constants.ROOMPOSITION_SUBSCRIPTION) == 0 && mode == Mode.COMMAND) {
+            return true;
             
-        } else if (item.indexOf(Constants.ROOMCHATLIST_SUBSCRIPTION) == 0  && mode != Mode.COMMAND) {
-            return false;
+        } else if (item.indexOf(Constants.ROOMCHATLIST_SUBSCRIPTION) == 0  && mode == Mode.COMMAND) {
+            return true;
             
-        } else if (mode != Mode.MERGE) {
-            return false;
         }
-        return true;
+        
+        return mode == Mode.MERGE;
     }
     
     @Override
