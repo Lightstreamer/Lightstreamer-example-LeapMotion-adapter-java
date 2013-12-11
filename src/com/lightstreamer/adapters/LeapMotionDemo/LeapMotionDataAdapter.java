@@ -272,7 +272,9 @@ public class LeapMotionDataAdapter implements SmartDataProvider, UniverseListene
         if (!forced) {
             currentPosition.put(SmartDataProvider.KEY_FIELD, id);
             currentPosition.put(SmartDataProvider.COMMAND_FIELD, SmartDataProvider.UPDATE_COMMAND);
-            this.listener.smartUpdate(worldHandle, currentPosition, false);
+            if (worldHandle != null) {
+                this.listener.smartUpdate(worldHandle, currentPosition, false);
+            }
         } else {
             Object userHandle = chat.getUserStatusHandle(id);
             if (userHandle != null) {
