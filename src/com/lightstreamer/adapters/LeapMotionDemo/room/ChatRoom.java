@@ -121,6 +121,18 @@ public class ChatRoom {
         }
     }
     
+    public Object getUserStatusHandle(String id) {
+        synchronized(users) {
+            if (!users.containsKey(id)) {
+                return null;
+            } 
+            
+            User user = users.get(id);
+            return user.getStatusHandle();
+        }
+    }
+
+    
     public void removeUser(final String id) {
         synchronized(users) {
             if (!users.containsKey(id)) {
@@ -264,6 +276,10 @@ public class ChatRoom {
             this.id = id;
         }
         
+        public Object getStatusHandle() {
+            return this.statusHandle;
+        }
+
         public void enterRoom(Room room) {
             room.addUser(this.id);
             this.rooms.add(room);
@@ -345,7 +361,7 @@ public class ChatRoom {
             this.statusHandle = roomStatusHandle;
         }
         
-        public void setHandle(Object messageHandle) {
+        public void setMessageHandle(Object messageHandle) {
             this.messageHandle = messageHandle;
         }
         
@@ -369,8 +385,6 @@ public class ChatRoom {
         
 
     }
-
-    
 
     
 }

@@ -175,7 +175,8 @@ public class LeapMotionDataAdapter implements SmartDataProvider, UniverseListene
               
         this.listener.smartUpdate(roomStatusHandle, update, !realTimeEvent);
         
-        universe.addUserToWorld(id,room);
+        universe.addPlayerToWorld(id,room);
+        
     }
     
     @Override
@@ -195,7 +196,7 @@ public class LeapMotionDataAdapter implements SmartDataProvider, UniverseListene
         
         this.listener.smartUpdate(roomStatusHandle, update, false);
         
-        universe.removeUserFromWorld(id,room);
+        universe.removePlayerFromWorld(id,room);
     }
 
     
@@ -213,6 +214,8 @@ public class LeapMotionDataAdapter implements SmartDataProvider, UniverseListene
         }
         
         this.listener.smartUpdate(userStatusHandle, update, !realTimeEvent);
+        
+        //note: in case of a !realtime event, if we assign an initial movement to the players we'll have to check if the player for this user already exists and grab its forces
         
     }
 
@@ -248,14 +251,44 @@ public class LeapMotionDataAdapter implements SmartDataProvider, UniverseListene
     }
 
     @Override
-    public void onPlayerCreated(String id, String worldId, Object worldHandle, boolean realTimeEvent) {
+    public void onPlayerCreated(String id, String worldId, Object worldHandle, HashMap<String,String> currentPosition,  HashMap<String,String> currentImpulses, boolean realTimeEvent) {
         logger.debug(id + " enters world " + worldId);
         
-        HashMap<String, String> update = new HashMap<String, String>();
-        update.put(SmartDataProvider.KEY_FIELD, id);
-        update.put(SmartDataProvider.COMMAND_FIELD, SmartDataProvider.ADD_COMMAND);
-              
-        this.listener.smartUpdate(worldHandle, update, !realTimeEvent);
+        if (worldHandle != null) {
+            currentPosition.put(SmartDataProvider.KEY_FIELD, id);
+            currentPosition.put(SmartDataProvider.COMMAND_FIELD, SmartDataProvider.ADD_COMMAND); 
+            this.listener.smartUpdate(worldHandle, currentPosition, !realTimeEvent);
+        }
+        
+        Object userHandle = chat.getUserStatusHandle(id);
+        if (userHandle != null) {
+            this.listener.smartUpdate(userHandle, currentImpulses, false);
+        }
+    }
+    
+    @Override
+    public void onPlayerMoved(String id, String worldId, Object worldHandle,
+            HashMap<String, String> currentPosition, boolean forced) {
+        if (!forced) {
+            currentPosition.put(SmartDataProvider.KEY_FIELD, id);
+            currentPosition.put(SmartDataProvider.COMMAND_FIELD, SmartDataProvider.UPDATE_COMMAND);
+            this.listener.smartUpdate(worldHandle, currentPosition, false);
+        } else {
+            Object userHandle = chat.getUserStatusHandle(id);
+            if (userHandle != null) {
+                this.listener.smartUpdate(userHandle, currentPosition, false);
+            }
+        }
+    }
+
+    @Override
+    public void onPlayerActed(String id, String worldId, Object worldHandle,
+            HashMap<String, String> currentImpulses) {
+        
+        Object userHandle = chat.getUserStatusHandle(id);
+        if (userHandle != null) {
+            this.listener.smartUpdate(userHandle, currentImpulses, false);
+        }
     }
 
     @Override
@@ -268,9 +301,6 @@ public class LeapMotionDataAdapter implements SmartDataProvider, UniverseListene
         
         this.listener.smartUpdate(worldHandle, update, false);
     }
-
-    
-    
     
     
     @Override
@@ -280,4 +310,5 @@ public class LeapMotionDataAdapter implements SmartDataProvider, UniverseListene
         logger.error("Unexpected call");
         throw new SubscriptionException("Unexpected call");
     }
+
 }
