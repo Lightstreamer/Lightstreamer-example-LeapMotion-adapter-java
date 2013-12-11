@@ -8,6 +8,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
 
+import com.lightstreamer.adapters.LeapMotionDemo.engine3D.Universe;
+import com.lightstreamer.adapters.LeapMotionDemo.engine3D.UniverseListener;
 import com.lightstreamer.adapters.LeapMotionDemo.room.ChatRoom;
 import com.lightstreamer.adapters.LeapMotionDemo.room.ChatRoomListener;
 import com.lightstreamer.interfaces.data.DataProviderException;
@@ -16,7 +18,7 @@ import com.lightstreamer.interfaces.data.ItemEventListener;
 import com.lightstreamer.interfaces.data.SmartDataProvider;
 import com.lightstreamer.interfaces.data.SubscriptionException;
 
-public class LeapMotionDataAdapter implements SmartDataProvider, /*UniverseListener,*/ ChatRoomListener {
+public class LeapMotionDataAdapter implements SmartDataProvider, UniverseListener, ChatRoomListener {
 
     public static final ConcurrentHashMap<String, LeapMotionDataAdapter> feedMap =
             new ConcurrentHashMap<String, LeapMotionDataAdapter>();
@@ -24,8 +26,8 @@ public class LeapMotionDataAdapter implements SmartDataProvider, /*UniverseListe
     public Logger logger;
     //public Logger tracer;
     
-    //private Universe universe = new Universe();
-    private ChatRoom chat = new ChatRoom();
+    private Universe universe = new Universe(this);
+    private ChatRoom chat = new ChatRoom(this);
     private ItemEventListener listener;
     
     @Override
@@ -47,9 +49,6 @@ public class LeapMotionDataAdapter implements SmartDataProvider, /*UniverseListe
         logger.info("Adapter Logger start.");
         //tracer.info("Trace Logger start.");
         
-        chat.setListener(this);
-      
-        
         // Read the Adapter Set name, which is supplied by the Server as a parameter
         String adapterSetId = (String) params.get("adapters_conf.id");
         
@@ -70,6 +69,10 @@ public class LeapMotionDataAdapter implements SmartDataProvider, /*UniverseListe
     ChatRoom getChatFeed() {
         return this.chat;
     }
+    
+    Universe getUniverse() {
+        return this.universe;
+    }
 
     @Override
     public boolean isSnapshotAvailable(String item)
@@ -78,7 +81,7 @@ public class LeapMotionDataAdapter implements SmartDataProvider, /*UniverseListe
         if (item.indexOf(Constants.USER_SUBSCRIPTION) == 0) { 
             return false; //currently does not generate any event at all (and never will)
         } else if (item.indexOf(Constants.ROOMPOSITION_SUBSCRIPTION) == 0) {
-            return false; //currently does not generate any event at all TODO
+            return true;
         } else if (item.indexOf(Constants.ROOMCHATLIST_SUBSCRIPTION) == 0) {
             return true;
         } else {
@@ -96,7 +99,7 @@ public class LeapMotionDataAdapter implements SmartDataProvider, /*UniverseListe
             logger.debug("User subscription: " + item);
             
             //item comes from client as user_nick, is modified by metadata as user_id|nick
-            String[] ids = item.substring(Constants.USER_SUBSCRIPTION.length()).split(Constants.SPLIT_CHAR);
+            String[] ids = item.substring(Constants.USER_SUBSCRIPTION.length()).split(Constants.SPLIT_CHAR_REG);
             if (ids.length != 2) {
                 throw new SubscriptionException("Unexpected user item: review getItems metadata implementation");
             }
@@ -111,17 +114,17 @@ public class LeapMotionDataAdapter implements SmartDataProvider, /*UniverseListe
             
             String roomId = item.substring(Constants.ROOMPOSITION_SUBSCRIPTION.length());
             
-            // TODO
+            universe.startWatchingWorld(roomId, handle);
             
         } else if (item.indexOf(Constants.ROOMCHATLIST_SUBSCRIPTION) == 0) {
-            //COMMAND contains user statuses and user nicks
+            //COMMAND contains users of a certain room
             logger.debug("Room list subscription: " + item);
             
             String roomId = item.substring(Constants.ROOMCHATLIST_SUBSCRIPTION.length());
             chat.startRoomListen(roomId,handle);// will add the room if non-existent (room may exist if a user entered it even if no one is listening to it)
 
         } else {
-            //MERGE subscription for user status and nick 
+            //MERGE subscription for user status and nick + their commands and forced positions 
             logger.debug("User status subscription: " + item);
             chat.startUserStatusListen(item,handle);
         }
@@ -134,7 +137,7 @@ public class LeapMotionDataAdapter implements SmartDataProvider, /*UniverseListe
         if (item.indexOf(Constants.USER_SUBSCRIPTION) == 0) {
             logger.debug("User unsubscription: " + item);
             
-            String[] ids = item.substring(Constants.USER_SUBSCRIPTION.length()).split(Constants.SPLIT_CHAR);
+            String[] ids = item.substring(Constants.USER_SUBSCRIPTION.length()).split(Constants.SPLIT_CHAR_REG);
             if (ids.length != 2) {
                 return;
             }
@@ -146,7 +149,7 @@ public class LeapMotionDataAdapter implements SmartDataProvider, /*UniverseListe
             
             String roomId = item.substring(Constants.ROOMPOSITION_SUBSCRIPTION.length());
             
-            // TODO create 3d room
+            universe.stopWatchingWorld(roomId);
             
         } else if (item.indexOf(Constants.ROOMCHATLIST_SUBSCRIPTION) == 0) {
             logger.debug("Room list unsubscription: " + item);
@@ -162,7 +165,6 @@ public class LeapMotionDataAdapter implements SmartDataProvider, /*UniverseListe
     
     //user related events sequentiality is ensured by the chat class  
 
-        //room-enter-exit handling
     @Override
     public void onUserEnter(String id, String room, Object roomStatusHandle, boolean realTimeEvent) {
         logger.debug(id + " enters " + room);
@@ -173,8 +175,7 @@ public class LeapMotionDataAdapter implements SmartDataProvider, /*UniverseListe
               
         this.listener.smartUpdate(roomStatusHandle, update, !realTimeEvent);
         
-    
-        // TODO add user to 3d world
+        universe.addUserToWorld(id,room);
     }
     
     @Override
@@ -194,11 +195,9 @@ public class LeapMotionDataAdapter implements SmartDataProvider, /*UniverseListe
         
         this.listener.smartUpdate(roomStatusHandle, update, false);
         
-        
-     // TODO remove user from 3D world
+        universe.removeUserFromWorld(id,room);
     }
 
-        //user nick-status changes 
     
     @Override
     public void onUserStatusChange(String id, String nick, String statusId, String status, Object userStatusHandle, boolean realTimeEvent) {
@@ -241,6 +240,39 @@ public class LeapMotionDataAdapter implements SmartDataProvider, /*UniverseListe
         logger.debug(id + " is gone");
     }
     
+    // universe events
+    
+    @Override
+    public void onWorldComplete(String worldId, Object worldHandle) {
+        this.listener.smartEndOfSnapshot(worldHandle);
+    }
+
+    @Override
+    public void onPlayerCreated(String id, String worldId, Object worldHandle, boolean realTimeEvent) {
+        logger.debug(id + " enters world " + worldId);
+        
+        HashMap<String, String> update = new HashMap<String, String>();
+        update.put(SmartDataProvider.KEY_FIELD, id);
+        update.put(SmartDataProvider.COMMAND_FIELD, SmartDataProvider.ADD_COMMAND);
+              
+        this.listener.smartUpdate(worldHandle, update, !realTimeEvent);
+    }
+
+    @Override
+    public void onPlayerDisposed(String id, String worldId, Object worldHandle) {
+        logger.debug(id + " exits world " + worldId);
+        
+        HashMap<String, String> update = new HashMap<String, String>();
+        update.put(SmartDataProvider.KEY_FIELD, id);
+        update.put(SmartDataProvider.COMMAND_FIELD, SmartDataProvider.DELETE_COMMAND);
+        
+        this.listener.smartUpdate(worldHandle, update, false);
+    }
+
+    
+    
+    
+    
     @Override
     public void subscribe(String arg0, boolean arg1)
             throws SubscriptionException, FailureException {
@@ -248,5 +280,4 @@ public class LeapMotionDataAdapter implements SmartDataProvider, /*UniverseListe
         logger.error("Unexpected call");
         throw new SubscriptionException("Unexpected call");
     }
-
 }

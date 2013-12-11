@@ -24,14 +24,14 @@ public class ChatRoom {
     
     private Executor executor =  Executors.newSingleThreadExecutor();
     
-    public void setListener(ChatRoomListener listener) {
+    public ChatRoom(ChatRoomListener listener) {
         this.listener = listener;
     }
     
     private User addUser(final String id) {
         synchronized(users) {
             User user = new User(id);
-            user = users.put(id, user);
+            users.put(id, user);
             
             executor.execute(new Runnable() {
                 public void run() {
