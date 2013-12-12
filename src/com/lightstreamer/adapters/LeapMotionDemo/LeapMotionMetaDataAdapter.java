@@ -10,18 +10,11 @@ import org.apache.log4j.xml.DOMConfigurator;
 import com.lightstreamer.adapters.LeapMotionDemo.engine3D.Universe;
 import com.lightstreamer.adapters.LeapMotionDemo.room.ChatRoom;
 import com.lightstreamer.adapters.metadata.LiteralBasedProvider;
-import com.lightstreamer.interfaces.data.SubscriptionException;
-import com.lightstreamer.interfaces.metadata.AccessException;
 import com.lightstreamer.interfaces.metadata.CreditsException;
-import com.lightstreamer.interfaces.metadata.CustomizableItemEvent;
-import com.lightstreamer.interfaces.metadata.ItemEvent;
 import com.lightstreamer.interfaces.metadata.ItemsException;
-import com.lightstreamer.interfaces.metadata.MetadataProvider;
 import com.lightstreamer.interfaces.metadata.MetadataProviderException;
 import com.lightstreamer.interfaces.metadata.Mode;
 import com.lightstreamer.interfaces.metadata.NotificationException;
-import com.lightstreamer.interfaces.metadata.SchemaException;
-import com.lightstreamer.interfaces.metadata.TableInfo;
 
 public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
 
