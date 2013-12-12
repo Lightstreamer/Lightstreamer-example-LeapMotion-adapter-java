@@ -373,8 +373,7 @@ public class ChatRoom {
         }
 
         void removeUser(String id) {
-            this.users.remove(id);
-            if (this.statusHandle != null) {
+            if (this.users.remove(id) && this.statusHandle != null ) {
                 sendRoomStatusEvent(id, this.roomId, this.statusHandle, EXIT, REALTIME);
             }
         }
