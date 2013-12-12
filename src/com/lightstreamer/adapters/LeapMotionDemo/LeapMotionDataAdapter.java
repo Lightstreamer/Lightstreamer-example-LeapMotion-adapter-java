@@ -163,7 +163,7 @@ public class LeapMotionDataAdapter implements SmartDataProvider, UniverseListene
         }
     }
     
-    //user related events sequentiality is ensured by the chat class  
+    //user related events sequentiality is ensured by the chat class; are only generated if there is the associated handle  
 
     @Override
     public void onUserEnter(String id, String room, Object roomStatusHandle, boolean realTimeEvent) {
@@ -243,11 +243,13 @@ public class LeapMotionDataAdapter implements SmartDataProvider, UniverseListene
         logger.debug(id + " is gone");
     }
     
-    // universe events
+    // universe events are generated even if there is no handle
     
     @Override
     public void onWorldComplete(String worldId, Object worldHandle) {
-        this.listener.smartEndOfSnapshot(worldHandle);
+        if (worldHandle != null) {
+            this.listener.smartEndOfSnapshot(worldHandle);
+        }
     }
 
     @Override
@@ -270,9 +272,9 @@ public class LeapMotionDataAdapter implements SmartDataProvider, UniverseListene
     public void onPlayerMoved(String id, String worldId, Object worldHandle,
             HashMap<String, String> currentPosition, boolean forced) {
         if (!forced) {
-            currentPosition.put(SmartDataProvider.KEY_FIELD, id);
-            currentPosition.put(SmartDataProvider.COMMAND_FIELD, SmartDataProvider.UPDATE_COMMAND);
             if (worldHandle != null) {
+                currentPosition.put(SmartDataProvider.KEY_FIELD, id);
+                currentPosition.put(SmartDataProvider.COMMAND_FIELD, SmartDataProvider.UPDATE_COMMAND);
                 this.listener.smartUpdate(worldHandle, currentPosition, false);
             }
         } else {
@@ -296,12 +298,13 @@ public class LeapMotionDataAdapter implements SmartDataProvider, UniverseListene
     @Override
     public void onPlayerDisposed(String id, String worldId, Object worldHandle) {
         logger.debug(id + " exits world " + worldId);
-        
-        HashMap<String, String> update = new HashMap<String, String>();
-        update.put(SmartDataProvider.KEY_FIELD, id);
-        update.put(SmartDataProvider.COMMAND_FIELD, SmartDataProvider.DELETE_COMMAND);
-        
-        this.listener.smartUpdate(worldHandle, update, false);
+        if (worldHandle != null) {
+            HashMap<String, String> update = new HashMap<String, String>();
+            update.put(SmartDataProvider.KEY_FIELD, id);
+            update.put(SmartDataProvider.COMMAND_FIELD, SmartDataProvider.DELETE_COMMAND);
+            
+            this.listener.smartUpdate(worldHandle, update, false);
+        }
     }
     
     
