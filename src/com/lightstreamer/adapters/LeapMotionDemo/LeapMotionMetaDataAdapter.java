@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.log4j.Logger;
 import org.apache.log4j.xml.DOMConfigurator;
 
+import com.lightstreamer.adapters.LeapMotionDemo.engine3D.Universe;
 import com.lightstreamer.adapters.LeapMotionDemo.room.ChatRoom;
 import com.lightstreamer.adapters.metadata.LiteralBasedProvider;
 import com.lightstreamer.interfaces.data.SubscriptionException;
@@ -142,6 +143,9 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
         //status| <-- changing status message
         //enter| <-- enter a room
         //leave| <-- leave a room
+        //grab| <-- grab the cube
+        //release| <-- release the cube
+        //move| <-- move the cube
         String val;
         if (( val = Constants.getVal(message,Constants.NICK_MESSAGE)) != null) {
             ChatRoom chat = this.feed.getChatFeed();
@@ -155,6 +159,15 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
         } else if (( val = Constants.getVal(message,Constants.EXIT_ROOM)) != null) {
             ChatRoom chat = this.feed.getChatFeed();
             chat.leaveRoom(id,val);
+        } else if (( val = Constants.getVal(message,Constants.GRAB_MESSAGE)) != null) {
+            Universe universe = this.feed.getUniverse();
+            universe.block(id,val);
+        } else if (( val = Constants.getVal(message,Constants.RELEASE_MESSAGE)) != null) {
+            Universe universe = this.feed.getUniverse();
+            universe.release(id,val);
+        } else if (( val = Constants.getVal(message,Constants.MOVE_MESSAGE)) != null) {
+            Universe universe = this.feed.getUniverse();
+            universe.move(id,val);
         }
     }
 

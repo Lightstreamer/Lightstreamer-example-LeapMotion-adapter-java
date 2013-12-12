@@ -33,10 +33,10 @@ public class Universe {
     }
 
     public synchronized void removePlayerFromWorld(String id, String room) {
-        if (!worlds.containsKey(id)) {
+        if (!worlds.containsKey(room)) {
             return;
         }
-        World world = worlds.get(id);
+        World world = worlds.get(room);
         world.removeUser(id); 
         
         this.verifyWorld(id,world);
@@ -69,6 +69,30 @@ public class Universe {
             world.armageddon();
             worlds.remove(id);
         }
+    }
+
+    public void block(String playerId, String worldId) {
+        if (!worlds.containsKey(worldId)) {
+            return;
+        }
+        World world = worlds.get(worldId);
+        world.block(playerId);
+    }
+
+    public void release(String playerId, String worldId) {
+        if (!worlds.containsKey(worldId)) {
+            return;
+        }
+        World world = worlds.get(worldId);
+        world.release(playerId);
+    }
+
+    public void move(String playerId, String worldId) {
+        if (!worlds.containsKey(worldId)) {
+            return;
+        }
+        World world = worlds.get(worldId);
+        world.move(playerId);
     }
     
 

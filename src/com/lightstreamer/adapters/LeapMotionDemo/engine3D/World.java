@@ -2,6 +2,7 @@ package com.lightstreamer.adapters.LeapMotionDemo.engine3D;
 
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -86,9 +87,7 @@ public class World extends Thread {
 
     synchronized void removeUser(String id) {
         this.users.remove(id);
-        if (this.handle != null) {
-            this.sendPlayerStatus(id, this.id, this.handle, null, EXIT, REALTIME);
-        }
+        this.sendPlayerStatus(id, this.id, this.handle, null, EXIT, REALTIME);
     }
     
     synchronized void armageddon() {
@@ -116,13 +115,7 @@ public class World extends Thread {
             }
         }
     }
-    
-    //enter
-    //exit
-    //move 
-    //position
-    //position (forced)
-    
+      
     private synchronized void sendPlayerStatus(final String id, final String worldId, final Object worldHandle, BaseModelBody player, final int updateType, final boolean isRealTime) {
         if (updateType == ENTER) {
             final HashMap<String,String> currentPosition = new HashMap<String,String>();
@@ -169,6 +162,55 @@ public class World extends Thread {
                 listener.onPlayerActed(id, worldId, worldHandle, currentImpulses);
             } 
         });
+    }
+
+    public synchronized void block(String playerId) {
+        if (!this.users.containsKey(playerId)) {
+            return;
+        }
+        BaseModelBody player = this.users.get(playerId);
+        player.block();
+        this.sendPlayerAction(playerId, this.id, this.handle, player);
+    }
+    
+    public synchronized void release(String playerId) {
+        if (!this.users.containsKey(playerId)) {
+            return;
+        }
+        BaseModelBody player = this.users.get(playerId);
+        //TODO
+        this.tempRandomGo(player);
+        this.sendPlayerAction(playerId, this.id, this.handle, player);
+    }
+
+    public synchronized void move(String playerId) {
+        if (!this.users.containsKey(playerId)) {
+            return;
+        }
+        BaseModelBody player = this.users.get(playerId);
+        //TODO
+        this.tempRandomMove(player);
+        
+        //player.translate(this.factorWorld);
+        //player.rotate(this.factorWorld);
+        this.sendPlayerPosition(playerId, this.id, this.handle, player, FORCED);
+    }
+    
+    private Random tempRandom = new Random();
+    private void tempRandomGo(BaseModelBody player) {
+        player.setImpulse(IBody.Axis.X, Math.round(tempRandom.nextDouble()*5));
+        player.setImpulse(IBody.Axis.Y, Math.round(tempRandom.nextDouble()*5));
+        player.setImpulse(IBody.Axis.Z, Math.round(tempRandom.nextDouble()*5));
+        
+        player.setImpulse(IBody.Axis.X, Math.round(tempRandom.nextDouble()*5));
+        player.setImpulse(IBody.Axis.Y, Math.round(tempRandom.nextDouble()*5));
+        player.setImpulse(IBody.Axis.Z, Math.round(tempRandom.nextDouble()*5));
+        
+    }
+    private void tempRandomMove(BaseModelBody player) {
+        player.setX(Math.round(tempRandom.nextDouble()*90));
+        player.setY(Math.round(tempRandom.nextDouble()*90));
+        player.setZ(Math.round(tempRandom.nextDouble()*90));
     }
 
 }
