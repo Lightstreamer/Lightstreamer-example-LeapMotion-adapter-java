@@ -353,13 +353,13 @@ public class BaseModelBody implements IBody {
     }
     
     public void fillImpulseMap(HashMap<String,String> model) {
-        model.put("Vx", String.valueOf(this.vX));
-        model.put("Vy", String.valueOf(this.vY));
-        model.put("Vz", String.valueOf(this.vZ));
+        model.put("dVx", String.valueOf(this.vX));
+        model.put("dVy", String.valueOf(this.vY));
+        model.put("dVz", String.valueOf(this.vZ));
         
-        model.put("momx", String.valueOf(this.deltaRotX));
-        model.put("momy", String.valueOf(this.deltaRotY));
-        model.put("momz", String.valueOf(this.deltaRotZ));
+        model.put("dRx", String.valueOf(this.deltaRotX));
+        model.put("dRy", String.valueOf(this.deltaRotY));
+        model.put("dRz", String.valueOf(this.deltaRotZ));
     }
     
   
