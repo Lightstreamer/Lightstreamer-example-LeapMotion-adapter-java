@@ -63,6 +63,8 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
         
         String[] split = super.getItems(user,session,group);
         
+        //TODO user id comes from client, validate or refuse
+        
         for (int i = 0; i<split.length; i++) {
             if (split[i].indexOf(Constants.USER_SUBSCRIPTION) == 0) {
                 if (split[i].indexOf(Constants.SPLIT_CHAR) > -1) {
@@ -160,7 +162,24 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
             universe.release(id,val);
         } else if (( val = Constants.getVal(message,Constants.MOVE_MESSAGE)) != null) {
             Universe universe = this.feed.getUniverse();
-            universe.move(id,val);
+            String[] values = val.split(Constants.SPLIT_CHAR_REG);
+            if (values.length != 4) {
+                //TODO throw
+                return;
+            }
+            double x = 0;
+            double y = 0; 
+            double z = 0;
+            try {
+                x = Double.parseDouble(values[1]);
+                y = Double.parseDouble(values[2]);
+                z = Double.parseDouble(values[3]);
+            } catch(NumberFormatException nf) {
+                //TODO throw
+                return;
+            }
+            
+            universe.move(id,values[0],x,y,z);
         }
     }
 

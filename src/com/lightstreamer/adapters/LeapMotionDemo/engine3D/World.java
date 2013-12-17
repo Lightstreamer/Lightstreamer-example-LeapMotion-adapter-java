@@ -183,16 +183,16 @@ public class World extends Thread {
         this.sendPlayerAction(playerId, this.id, this.handle, player);
     }
 
-    public synchronized void move(String playerId) {
+    public synchronized void move(String playerId, double x, double y, double z) {
         if (!this.users.containsKey(playerId)) {
             return;
         }
         BaseModelBody player = this.users.get(playerId);
-        //TODO
-        this.tempRandomMove(player);
         
-        //player.translate(this.factorWorld);
-        //player.rotate(this.factorWorld);
+        player.setX(x);
+        player.setY(x);
+        player.setZ(x);
+       
         this.sendPlayerPosition(playerId, this.id, this.handle, player, FORCED);
     }
     
@@ -202,15 +202,10 @@ public class World extends Thread {
         player.setImpulse(IBody.Axis.Y, Math.round(tempRandom.nextDouble()*5));
         player.setImpulse(IBody.Axis.Z, Math.round(tempRandom.nextDouble()*5));
         
-        player.setImpulse(IBody.Axis.X, Math.round(tempRandom.nextDouble()*5));
-        player.setImpulse(IBody.Axis.Y, Math.round(tempRandom.nextDouble()*5));
-        player.setImpulse(IBody.Axis.Z, Math.round(tempRandom.nextDouble()*5));
+        player.setTourque(IBody.Axis.X, Math.round(tempRandom.nextDouble()*5));
+        player.setTourque(IBody.Axis.Y, Math.round(tempRandom.nextDouble()*5));
+        player.setTourque(IBody.Axis.Z, Math.round(tempRandom.nextDouble()*5));
         
-    }
-    private void tempRandomMove(BaseModelBody player) {
-        player.setX(Math.round(tempRandom.nextDouble()*90));
-        player.setY(Math.round(tempRandom.nextDouble()*90));
-        player.setZ(Math.round(tempRandom.nextDouble()*90));
     }
 
 }

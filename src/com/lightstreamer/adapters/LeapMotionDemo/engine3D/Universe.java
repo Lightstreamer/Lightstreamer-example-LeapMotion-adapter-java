@@ -87,12 +87,12 @@ public class Universe {
         world.release(playerId);
     }
 
-    public void move(String playerId, String worldId) {
+    public void move(String playerId, String worldId, double x, double y, double z) {
         if (!worlds.containsKey(worldId)) {
             return;
         }
         World world = worlds.get(worldId);
-        world.move(playerId);
+        world.move(playerId,x,y,z);
     }
     
 
