@@ -79,12 +79,12 @@ public class Universe {
         world.block(playerId);
     }
 
-    public void release(String playerId, String worldId) {
+    public void release(String playerId, String worldId, double x, double y, double z) {
         if (!worlds.containsKey(worldId)) {
             return;
         }
         World world = worlds.get(worldId);
-        world.release(playerId);
+        world.release(playerId,x,y,z);
     }
 
     public void move(String playerId, String worldId, double x, double y, double z) {

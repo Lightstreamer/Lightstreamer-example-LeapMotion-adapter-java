@@ -145,42 +145,52 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
         if (( val = Constants.getVal(message,Constants.NICK_MESSAGE)) != null) {
             ChatRoom chat = this.feed.getChatFeed();
             chat.changeUserNick(id, val);
+            
         } else if (( val = Constants.getVal(message,Constants.STATUS_MESSAGE)) != null) {
             ChatRoom chat = this.feed.getChatFeed();
             chat.changeUserStatus(id, val, Constants.VOID_STATUS_ID);
+            
         } else if (( val = Constants.getVal(message,Constants.ENTER_ROOM)) != null) {
             ChatRoom chat = this.feed.getChatFeed();
             chat.enterRoom(id,val);
+            
         } else if (( val = Constants.getVal(message,Constants.EXIT_ROOM)) != null) {
             ChatRoom chat = this.feed.getChatFeed();
             chat.leaveRoom(id,val);
+            
         } else if (( val = Constants.getVal(message,Constants.GRAB_MESSAGE)) != null) {
             Universe universe = this.feed.getUniverse();
             universe.block(id,val);
+            
         } else if (( val = Constants.getVal(message,Constants.RELEASE_MESSAGE)) != null) {
             Universe universe = this.feed.getUniverse();
-            universe.release(id,val);
+            String[] values = val.split(Constants.SPLIT_CHAR_REG);
+            double[] dobuleValues = getDoubles(values);
+            universe.release(id,values[0],dobuleValues[0],dobuleValues[1],dobuleValues[2]);
+            
         } else if (( val = Constants.getVal(message,Constants.MOVE_MESSAGE)) != null) {
             Universe universe = this.feed.getUniverse();
             String[] values = val.split(Constants.SPLIT_CHAR_REG);
-            if (values.length != 4) {
-                //TODO throw
-                return;
-            }
-            double x = 0;
-            double y = 0; 
-            double z = 0;
-            try {
-                x = Double.parseDouble(values[1]);
-                y = Double.parseDouble(values[2]);
-                z = Double.parseDouble(values[3]);
-            } catch(NumberFormatException nf) {
-                //TODO throw
-                return;
-            }
-            
-            universe.move(id,values[0],x,y,z);
+            double[] dobuleValues = getDoubles(values);
+            universe.move(id,values[0],dobuleValues[0],dobuleValues[1],dobuleValues[2]);
         }
+    }
+    
+    private static double[] getDoubles(String[] values) {
+        if (values.length != 4) {
+            //TODO throw
+            return null;
+        }
+        double[] res = new double[3];
+        try {
+            res[0] = Double.parseDouble(values[1]);
+            res[1] = Double.parseDouble(values[2]);
+            res[2] = Double.parseDouble(values[3]);
+        } catch(NumberFormatException nf) {
+            //TODO throw
+            return null;
+        }
+        return res;
     }
 
     

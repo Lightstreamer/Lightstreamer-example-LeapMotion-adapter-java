@@ -177,13 +177,16 @@ public class World extends Thread {
         this.sendPlayerAction(playerId, this.id, this.handle, player);
     }
     
-    public synchronized void release(String playerId) {
+    public synchronized void release(String playerId, double x, double y, double z) {
         if (!this.users.containsKey(playerId)) {
             return;
         }
         BaseModelBody player = this.users.get(playerId);
+        player.setImpulse(IBody.Axis.X, x);
+        player.setImpulse(IBody.Axis.Y, y);
+        player.setImpulse(IBody.Axis.Z, z);
         //TODO
-        this.tempRandomGo(player);
+        this.tempRandomTorque(player);
         this.sendPlayerAction(playerId, this.id, this.handle, player);
     }
 
@@ -201,11 +204,7 @@ public class World extends Thread {
     }
     
     private Random tempRandom = new Random();
-    private void tempRandomGo(BaseModelBody player) {
-        player.setImpulse(IBody.Axis.X, Math.round(tempRandom.nextDouble()*5));
-        player.setImpulse(IBody.Axis.Y, Math.round(tempRandom.nextDouble()*5));
-        player.setImpulse(IBody.Axis.Z, Math.round(tempRandom.nextDouble()*5));
-        
+    private void tempRandomTorque(BaseModelBody player) {
         player.setTourque(IBody.Axis.X, Math.round(tempRandom.nextDouble()*5));
         player.setTourque(IBody.Axis.Y, Math.round(tempRandom.nextDouble()*5));
         player.setTourque(IBody.Axis.Z, Math.round(tempRandom.nextDouble()*5));
