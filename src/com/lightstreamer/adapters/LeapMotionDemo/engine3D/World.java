@@ -194,8 +194,8 @@ public class World extends Thread {
         BaseModelBody player = this.users.get(playerId);
         
         player.setX(x);
-        player.setY(x);
-        player.setZ(x);
+        player.setY(y);
+        player.setZ(z);
        
         this.sendPlayerPosition(playerId, this.id, this.handle, player, FORCED);
     }
