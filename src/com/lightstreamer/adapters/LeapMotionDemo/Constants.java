@@ -24,6 +24,9 @@ public class Constants {
     public static final String RELEASE_MESSAGE = "release|";
     public static final String MOVE_MESSAGE = "move|";
     
+    public static final int BASE_RATE = 10;
+    public static final int FRAME_INTERVAL = 50;
+    
     
     public static String getVal(String original, String type) {
         if(original.indexOf(type) == 0) {

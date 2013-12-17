@@ -7,6 +7,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+import com.lightstreamer.adapters.LeapMotionDemo.Constants;
+
 public class World extends Thread {
     
     private static final int ENTER = 1;
@@ -29,21 +31,23 @@ public class World extends Thread {
     private Object handle = null;
     
     
-    private static final int BASE_RATE = 10;
-    
-    private int frameRate = 10;
+
+    private int frameInterval = 0;
     private double factorWorld = 1.0;
     
     private boolean stop = false;
     
-    World(String id, UniverseListener listener)  {
+    World(String id, UniverseListener listener, int frameInterval)  {
         this.id = id;
         this.listener = listener;
+        
+        this.frameInterval = frameInterval;
+        this.factorWorld = (double)(this.frameInterval / Constants.BASE_RATE);
     }
     
-    synchronized void setFrameRate(int frameRate) {
-        this.frameRate = frameRate;
-        this.factorWorld = (double)(this.frameRate / BASE_RATE);
+    synchronized void setFrameInterval(int frameInterval) {
+        this.frameInterval = frameInterval;
+        this.factorWorld = (double)(this.frameInterval / Constants.BASE_RATE);
     }
 
     synchronized boolean isListened() {
@@ -110,7 +114,7 @@ public class World extends Thread {
             }
             
             try {
-                Thread.sleep(this.frameRate);
+                Thread.sleep(this.frameInterval);
             } catch (InterruptedException ie) {
             }
         }

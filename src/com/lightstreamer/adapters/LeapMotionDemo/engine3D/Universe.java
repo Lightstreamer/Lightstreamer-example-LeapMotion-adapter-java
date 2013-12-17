@@ -25,7 +25,7 @@ public class Universe {
             return worlds.get(id);
             
         } else {
-            World world = new World(id,listener);
+            World world = new World(id,listener, Constants.FRAME_INTERVAL);
             worlds.put(id, world);
             world.start();
             return world;
