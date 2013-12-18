@@ -129,15 +129,12 @@ public class LeapMotionDataAdapter implements SmartDataProvider, UniverseListene
     public synchronized void unsubscribe(String item) throws SubscriptionException,
             FailureException {
         
-        if (item.indexOf(Constants.USER_SUBSCRIPTION) == 0) {
+        String val;
+        if (( val = Constants.getVal(item,Constants.USER_SUBSCRIPTION)) != null) {
             logger.debug("User unsubscription: " + item);
             
-            String[] ids = item.substring(Constants.USER_SUBSCRIPTION.length()).split(Constants.SPLIT_CHAR_REG);
-            if (ids.length != 2) {
-                return;
-            }
-            chat.stopUserMessageListen(ids[0]);
-            chat.removeUser(ids[0]);
+            chat.stopUserMessageListen(val);
+            chat.removeUser(val);
             
         } else if (item.indexOf(Constants.ROOMPOSITION_SUBSCRIPTION) == 0) {
             logger.debug("Position unsubscription: " + item);
