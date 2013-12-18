@@ -30,6 +30,7 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
      * Session information is needed to pass the IP to logging purpose.
      */
     private ConcurrentHashMap<String,Map<String,String>> sessions = new ConcurrentHashMap<String,Map<String,String>>();
+    private ConcurrentHashMap<String,String> ids = new ConcurrentHashMap<String,String>();
     
     private LeapMotionDataAdapter feed;
     
@@ -60,42 +61,37 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
     @Override
     public String[] getItems(String user, String session, String group)
             throws ItemsException {
-        
         String[] split = super.getItems(user,session,group);
-        
-        //TODO user id comes from client, validate or refuse
-        
         for (int i = 0; i<split.length; i++) {
-            if (split[i].indexOf(Constants.USER_SUBSCRIPTION) == 0) {
-                if (split[i].indexOf(Constants.SPLIT_CHAR) > -1) {
-                    throw new ItemsException("Unexpected "+Constants.SPLIT_CHAR+" charater in item name.");
-                } //we may forgive this and later split @ the first occorunce of the SPLIT_CHAR
-                
-                String nick = split[i].substring(Constants.USER_SUBSCRIPTION.length());
-                
-                
-                String id = null;
+            String val;
+            if (( val = Constants.getVal(split[i],Constants.USER_SUBSCRIPTION)) != null) {
                 synchronized(sessions) {
-                    //we might use the sessionID as userID but that would expose a user's sessionID to
-                    //everyone compromising its security
-                    
                     Map<String,String> sessionInfo = sessions.get(session);
                     if (sessionInfo == null) {
                         throw new ItemsException("Can't find session");
                     }
-                    id = sessionInfo.get(Constants.USER_ID);
-                    if (id == null) {
-                        id = "u"+(nextId++);
-                        sessionInfo.put(Constants.USER_ID, id);
+                    
+                    if (sessionInfo.containsKey(Constants.USER_ID)) {
+                        //currently permit only one id per session 
+                        String prevVal = sessionInfo.get(Constants.USER_ID);
+                        if (!val.equals(prevVal)) {
+                            throw new ItemsException("Session alredy owns an ID: " + val);
+                        }
+                        
+                    } else {
+                        if (ids.containsKey(val)) {
+                            throw new ItemsException("Id already taken, try again");
+                        } 
+                        sessionInfo.put(Constants.USER_ID, val);
                     }
+                    ids.put(val, session);
+                    split[i] = Constants.USER_SUBSCRIPTION + val;
                 }
-                
-                
-                split[i] = Constants.USER_SUBSCRIPTION + id + Constants.SPLIT_CHAR + nick;
-            } 
+            }
         }
         
         return split;
+        
     }
     
     @Override
@@ -227,8 +223,12 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
     
     @Override
     public void notifySessionClose(String session) throws NotificationException {
-        //we have to remove session informations from the session HashMap
-        sessions.remove(session);
+        synchronized(sessions) {
+            //we have to remove session informations from the session HashMap
+            Map<String,String> sessionInfo = sessions.remove(session);
+            String id = sessionInfo.get(Constants.USER_ID);
+            ids.remove(id);
+        }
     }
 
 }

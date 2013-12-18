@@ -94,19 +94,14 @@ public class LeapMotionDataAdapter implements SmartDataProvider, UniverseListene
     public synchronized void subscribe(String item, Object handle, boolean needsIterator)
             throws SubscriptionException, FailureException {
 
-        if (item.indexOf(Constants.USER_SUBSCRIPTION) == 0) { 
+        String val;
+        if (( val = Constants.getVal(item,Constants.USER_SUBSCRIPTION)) != null) {
             //DISTINCT used only to signal presence
             logger.debug("User subscription: " + item);
             
-            //item comes from client as user_nick, is modified by metadata as user_id|nick
-            String[] ids = item.substring(Constants.USER_SUBSCRIPTION.length()).split(Constants.SPLIT_CHAR_REG);
-            if (ids.length != 2) {
-                throw new SubscriptionException("Unexpected user item: review getItems metadata implementation");
-            }
-            
             //user is created on subscription and destroyed on unsubscription
-            chat.startUserMessageListen(ids[0],handle);
-            chat.changeUserNick(ids[0],ids[1]);
+            chat.startUserMessageListen(val,handle);
+            chat.changeUserNick(val,val); //by default set nick = id
             
         } else if (item.indexOf(Constants.ROOMPOSITION_SUBSCRIPTION) == 0) {
             //COMMAND contains list of users and object positions
