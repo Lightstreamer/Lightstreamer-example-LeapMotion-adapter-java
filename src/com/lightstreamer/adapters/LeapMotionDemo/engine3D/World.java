@@ -185,8 +185,11 @@ public class World extends Thread {
         player.setImpulse(IBody.Axis.X, x);
         player.setImpulse(IBody.Axis.Y, y);
         player.setImpulse(IBody.Axis.Z, z);
-        //TODO
-        this.tempRandomTorque(player);
+        
+        player.setTourque(IBody.Axis.X,  Math.round(x/2));
+        player.setTourque(IBody.Axis.Y,  Math.round(y/2));
+        player.setTourque(IBody.Axis.Z,  Math.round(z/2));
+     
         this.sendPlayerAction(playerId, this.id, this.handle, player);
     }
 
