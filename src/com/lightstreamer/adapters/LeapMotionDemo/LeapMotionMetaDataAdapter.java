@@ -85,6 +85,13 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
                         sessionInfo.put(Constants.USER_ID, val);
                     }
                     ids.put(val, session);
+                    try {
+                        this.loadFeed();
+                    } catch (CreditsException e) {
+                        //TODO what now?
+                    }
+                    ChatRoom chat = this.feed.getChatFeed();
+                    chat.addUser(val); 
                     split[i] = Constants.USER_SUBSCRIPTION + val;
                 }
             }
@@ -227,7 +234,15 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
             //we have to remove session informations from the session HashMap
             Map<String,String> sessionInfo = sessions.remove(session);
             String id = sessionInfo.get(Constants.USER_ID);
-            ids.remove(id);
+            if (id != null) {
+                try {
+                    this.loadFeed();
+                } catch (CreditsException e) {
+                    //TODO what now?
+                }
+                ids.remove(id);
+                this.feed.getChatFeed().removeUser(id);
+            }
         }
     }
 

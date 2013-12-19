@@ -101,7 +101,6 @@ public class LeapMotionDataAdapter implements SmartDataProvider, UniverseListene
             
             //user is created on subscription and destroyed on unsubscription
             chat.startUserMessageListen(val,handle);
-            chat.changeUserNick(val,val); //by default set nick = id
             
         } else if (item.indexOf(Constants.ROOMPOSITION_SUBSCRIPTION) == 0) {
             //COMMAND contains list of users and object positions
@@ -134,7 +133,6 @@ public class LeapMotionDataAdapter implements SmartDataProvider, UniverseListene
             logger.debug("User unsubscription: " + item);
             
             chat.stopUserMessageListen(val);
-            chat.removeUser(val);
             
         } else if (item.indexOf(Constants.ROOMPOSITION_SUBSCRIPTION) == 0) {
             logger.debug("Position unsubscription: " + item);

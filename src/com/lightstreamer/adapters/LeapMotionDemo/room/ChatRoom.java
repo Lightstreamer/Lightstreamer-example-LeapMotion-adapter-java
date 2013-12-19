@@ -28,7 +28,7 @@ public class ChatRoom {
         this.listener = listener;
     }
     
-    private User addUser(final String id) {
+    public User addUser(final String id) {
         synchronized(users) {
             User user = new User(id);
             users.put(id, user);
