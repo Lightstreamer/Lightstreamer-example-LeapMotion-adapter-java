@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<adapters_conf id="LEAPDEMO">
+    <metadata_provider>
+        <adapter_class>com.lightstreamer.adapters.LeapMotionDemo.LeapMotionMetaDataAdapter</adapter_class>
+    </metadata_provider>
+    
+    <data_provider>
+        <adapter_class>com.lightstreamer.adapters.LeapMotionDemo.LeapMotionDataAdapter</adapter_class>
+    </data_provider>
+</adapters_conf>
