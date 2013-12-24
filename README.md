@@ -1,8 +1,10 @@
 # Lightstreamer - Leap Motion Demo - Java Adapter #
+<!-- START DESCRIPTION Leap Motion Demo -->
 
 _TODO Intro_
 
 _TODO Description_
+<!-- END DESCRIPTION Leap Motion Demo -->
 
 # Build #
 
@@ -42,8 +44,11 @@ Launch Lightstreamer.
 # See Also #
 
 ## Clients using this Adapter ##
+<!-- START RELATED_ENTRIES -->
 
 * [Lightstreamer - Leap Motion Demo - HTML Client](https://github.com/Weswit/Lightstreamer-example-LeapMotion-client-javascript)
+
+<!-- END RELATED_ENTRIES -->
 
 # Lightstreamer Compatibility Notes #
 
