@@ -1,10 +1,10 @@
 # Lightstreamer - Leap Motion Demo - Java Adapter #
-<!-- START DESCRIPTION Leap Motion Demo -->
+<!-- START DESCRIPTION lightstreamer-example-leapmotion-adapter-java -->
 
 _TODO Intro_
 
 _TODO Description_
-<!-- END DESCRIPTION Leap Motion Demo -->
+<!-- END DESCRIPTION lightstreamer-example-leapmotion-adapter-java -->
 
 # Build #
 
