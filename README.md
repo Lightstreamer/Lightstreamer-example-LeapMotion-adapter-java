@@ -43,7 +43,7 @@ Launch Lightstreamer.
 
 # See Also #
 
-## Clients using this Adapter ##
+## Clients Using This Adapter ##
 <!-- START RELATED_ENTRIES -->
 
 * [Lightstreamer - Leap Motion Demo - HTML Client](https://github.com/Weswit/Lightstreamer-example-LeapMotion-client-javascript)
