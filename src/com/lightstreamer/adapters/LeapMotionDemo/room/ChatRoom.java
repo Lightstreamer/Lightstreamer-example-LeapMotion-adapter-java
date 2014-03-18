@@ -1,37 +1,43 @@
 /*
-  Copyright 2014 Weswit Srl
+Copyright 2014 Weswit s.r.l.
 
-  Licensed under the Apache License, Version 2.0 (the "License");
-  you may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
 
-      http://www.apache.org/licenses/LICENSE-2.0
+       http://www.apache.org/licenses/LICENSE-2.0
 
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
 */
 package com.lightstreamer.adapters.LeapMotionDemo.room;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
+import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+
+import org.apache.log4j.Logger;
+
+import com.lightstreamer.adapters.LeapMotionDemo.Constants;
+
 
 
 public class ChatRoom {
 
     private ChatRoomListener listener;
     
-    private static final boolean ENTER = true;
-    private static final boolean EXIT = false;
+    static final boolean ENTER = true;
+    static final boolean EXIT = false;
     
-    private static final boolean REALTIME = true;
-    private static final boolean SNAPSHOT = false;
+    static final boolean REALTIME = true;
+    static final boolean SNAPSHOT = false;
+    
+    private Logger logger = Logger.getLogger(Constants.CHAT_CAT);
     
     
     private HashMap<String,User> users = new HashMap<String,User>();
@@ -43,69 +49,7 @@ public class ChatRoom {
         this.listener = listener;
     }
     
-    public User addUser(final String id) {
-        synchronized(users) {
-            User user = new User(id);
-            users.put(id, user);
-            
-            executor.execute(new Runnable() {
-                public void run() {
-                    listener.onNewUser(id);
-                }
-            });
-            
-            return user;
-        }
-    }
-    
-    public void changeUserNick(String id, String nick) {
-        synchronized(users) {
-            if (!users.containsKey(id)) {
-                return;
-            }
-            User user = users.get(id);
-            user.setNick(nick);
-        }
-    }
-    
-    public void changeUserStatus(String id, String status, String statusId) {
-        synchronized(users) {
-            if (!users.containsKey(id)) {
-                return;
-            }
-            User user = users.get(id);
-            user.setStatus(status,statusId);
-        }
-    }
-    
-    public void enterRoom(String id, String roomId) {
-        synchronized(users) {
-            if (!users.containsKey(id)) {
-                return;
-            }
-            User user = users.get(id);
-            Room room = this.getRoomForced(roomId);
-            user.enterRoom(room);
-            
-        }
-    }
-    
-    public void leaveRoom(String id, String roomId) {
-        synchronized(users) {
-            synchronized(rooms) {
-                if (!users.containsKey(id) || !rooms.containsKey(roomId)) {
-                    return;
-                }
-                User user = users.get(id);
-                Room room = rooms.get(roomId);
-                user.leaveRoom(room);
-                
-                if (room.isEmpty() && !room.isListened()) {
-                    rooms.remove(roomId);
-                }
-            }
-        }
-    }
+    // USER INTERNAL HANDLING
     
     private User getUserForced(String id) {
         synchronized(users) {
@@ -119,50 +63,34 @@ public class ChatRoom {
         }
     }
     
-
-    public void startUserMessageListen(String id, Object handle) {
+    private User addUser(final String id) {
         synchronized(users) {
-            User user = this.getUserForced(id);
-            user.setHandle(handle);
-        }
-    }
-    
-    public void startUserStatusListen(String id, Object userStatusHandle) {
-        synchronized(users) {
-            User user = this.getUserForced(id);
-            user.setStatusHandle(userStatusHandle);
+            logger.info("Creating new user " + id);
             
-            this.sendUserStatusEvent(id, user.getNick(), user.getStatusId(), user.getStatus(), userStatusHandle, SNAPSHOT);
-        }
-    }
-    
-    public Object getUserStatusHandle(String id) {
-        synchronized(users) {
-            if (!users.containsKey(id)) {
-                return null;
-            } 
+            User user = new User(this, id);
+            users.put(id, user);
             
-            User user = users.get(id);
-            return user.getStatusHandle();
+            executor.execute(new Runnable() {
+                public void run() {
+                    listener.onNewUser(id);
+                }
+            });
+            
+            return user;
         }
     }
-
     
-    public void removeUser(final String id) {
+    private void removeUser(final String id) {
         synchronized(users) {
             if (!users.containsKey(id)) {
                 return;
             }
+            logger.info("Destroying user " + id);
+            
             User user = users.remove(id);
             
-            synchronized(rooms) {
-                Iterator<Room> userRooms = user.getRooms();
-                while(userRooms.hasNext()) {
-                    Room room = userRooms.next();
-                    user.leaveRoom(room);
-                }
-            }
-
+            this.removeUserFromRooms(user);
+            
             executor.execute(new Runnable() {
                 public void run() {
                     listener.onUserDeleted(id);
@@ -171,17 +99,85 @@ public class ChatRoom {
         }
     }
     
+    //synchronized(users)
+    private void removeUserFromRooms(User user) {
+        synchronized(rooms) {
+            Iterator<Room> userRooms = user.getRooms();
+            while(userRooms.hasNext()) {
+                Room room = userRooms.next();
+                user.leaveRoom(room);
+            }
+        }
+    }
+    
+    private void checkUser(User user) {
+        if (!user.isListened() && !user.isActive()) {
+            this.removeUser(user.getId());
+        }
+    }
+    
+    // USER LIFE-CYCLE
+        // IN
+    
+    public void startUser(String id) {
+        synchronized(users) {
+            logger.trace("User startup " + id);
+            
+            User user = this.getUserForced(id);
+            user.setActive(true);
+        }
+    }
+    
+    public void startUserMessageListen(String id, Object handle) {
+        synchronized(users) {
+            logger.trace("User private messages startup " + id);
+            
+            User user = this.getUserForced(id);
+            user.setHandle(handle);
+        }
+    }
+    
+    public void startUserStatusListen(String id, Object userStatusHandle) {
+        synchronized(users) {
+            logger.trace("User status messages startup " + id);
+            
+            User user = this.getUserForced(id);
+            user.setStatusHandle(userStatusHandle);
+            
+            Map<String,String> extra = new HashMap<String,String>();
+            extra.putAll(user.getExtraProps());
+            this.sendUserStatusEvent(user, user.getNick(), user.getStatusId(), user.getStatus(), extra, userStatusHandle, SNAPSHOT);
+        }
+    }
+    
+    // USER LIFE-CYCLE
+        // OUT
+    
+    public void stopUser(String id) {
+        synchronized(users) {
+            if (!users.containsKey(id)) {
+                return;
+            }
+            logger.trace("User stop " + id);
+            
+            User user = users.get(id);
+            user.setActive(false);
+            
+            this.checkUser(user);
+        }
+    }
+    
     public void stopUserMessageListen(String id) {
         synchronized(users) {
             if (!users.containsKey(id)) {
                 return;
             }
+            logger.trace("User private messages stop " + id);
+            
             User user = users.get(id);
             user.setHandle(null);
             
-            if (!user.isListened()) {
-                this.removeUser(id);
-            }
+            this.checkUser(user);
         }
     }
     
@@ -190,30 +186,131 @@ public class ChatRoom {
             if (!users.containsKey(id)) {
                 return;
             }
+            logger.trace("User status messages stop " + id);
+            
             User user = users.get(id);
             user.setStatusHandle(null);
+            
+            this.checkUser(user);
+        }
+    }
+
+    // USER ACTIONS 
+        // PROPERTIES
+    
+    public void changeUserNick(String id, String nick) {
+        synchronized(users) {
+            if (!users.containsKey(id)) {
+                return;
+            }
+            logger.debug("User new nick " + id + ": " + nick);
+            
+            User user = users.get(id);
+            user.setNick(nick);
+        }
+    }
+    
+    public void changeUserStatus(String id, String status, String statusId) {
+        synchronized(users) {
+            if (!users.containsKey(id)) {
+                return;
+            }
+            logger.debug("User new status " + id + ": " + status);
+            
+            User user = users.get(id);
+            user.setStatus(status,statusId);
+        }
+    }
+    
+    // USER ACTIONS 
+        // ROOMS
+    
+    public void enterRoom(String id, String roomId) {
+        synchronized(users) {
+            if (!users.containsKey(id)) {
+                return;
+            }
+            logger.trace("User entering room " + id + ": " + roomId);
+            
+            User user = users.get(id);
+            Room room = this.getRoomForced(roomId);
+            user.enterRoom(room);
+            
+        }
+    }
+    
+    public void leaveRoom(String id, String roomId) {
+        synchronized(users) {
+            synchronized(rooms) {
+                if (!users.containsKey(id) || !rooms.containsKey(roomId)) {
+                    return;
+                }
+                logger.trace("User leaving room " + id + ": " + roomId);
+                
+                User user = users.get(id);
+                Room room = rooms.get(roomId);
+                user.leaveRoom(room);
+                
+                if (room.isEmpty() && !room.isListened()) {
+                    rooms.remove(roomId);
+                }
+            }
+        }
+    }
+    
+    public void leaveAllRooms(String id) {
+        synchronized(users) {
+            if (!users.containsKey(id)) {
+                return;
+            }
+            User user = this.getUserForced(id);
+            
+            this.removeUserFromRooms(user);
             
             if (!user.isListened()) {
                 this.removeUser(id);
             }
+            
         }
     }
+    
+    // USER ACTIONS 
+        // CHAT
+    
+    public void broadcastMessage(String id, String roomId, String message) {
+        synchronized(users) {
+            synchronized(rooms) {
+                if (!users.containsKey(id) || !rooms.containsKey(roomId)) {
+                    return;
+                }
+                logger.debug("User " + id + " message to room " + roomId + ": " + message);
+                
+                User user = users.get(id);
+                Room room = rooms.get(roomId);
+                room.broadcastMessage(user,message);
+            }
+        }
+        
+    }
+    
+    // USER EVENTS    
         
     //synchronized(users) {
-    private void sendUserStatusEvent(final String id, final String nick, final String statusId, final String status, final Object userStatusHandle, final boolean realTimeEvent) {
+    void sendUserStatusEvent(final User user, final String nick, final String statusId, final String status, final Map<String,String> extra, final Object userStatusHandle, final boolean realTimeEvent) {
         executor.execute(new Runnable() {
             public void run() {
-                listener.onUserStatusChange(id, nick, statusId, status, userStatusHandle, realTimeEvent);
+                listener.onUserStatusChange(user, nick, statusId, status, extra, userStatusHandle, realTimeEvent);
             }
         });
     }
+    
+    // ROOM INTERNAL HANDLING
     
     private Room getRoomForced(String roomId) {
         synchronized(rooms) {
             Room room = null;
             if (!rooms.containsKey(roomId)) {
-                room = new Room(roomId);
-                rooms.put(roomId, room);
+                room = this.addRoom(roomId);
             } else {
                 room = rooms.get(roomId);
             }
@@ -221,17 +318,50 @@ public class ChatRoom {
         }
     }
     
+    private Room addRoom(String roomId) {
+        synchronized(rooms) {
+            logger.info("Creating new room " + roomId);
+            
+            Room room = new Room(this, roomId);
+            rooms.put(roomId, room);
+            return room;
+        }
+    }
+    
+    private void removeRoom(String roomId) {
+        synchronized(rooms) {
+            if (!rooms.containsKey(roomId)) {
+                return;
+            }
+            logger.info("Destroying room " + roomId);
+            
+            rooms.remove(roomId);
+        }
+    }
+    
+    private void checkRoom(Room room) {
+        if (room.isEmpty() && !room.isListened()) {
+            this.removeRoom(room.getId());
+        }
+    }
+    
+    // ROOM LIFECYCLE
+        // IN
+    
     public void startRoomListen(final String roomId, final Object roomStatusHandle) {
         
         synchronized(rooms) {
             Room room = this.getRoomForced(roomId);
+            
+            logger.trace("Room user-list startup " + roomId);
             
             room.setStatusHandle(roomStatusHandle);
             
             Iterator<String> roomUsers = room.getUsers();
             while(roomUsers.hasNext()) {
                 String id = roomUsers.next();
-                this.sendRoomStatusEvent(id,roomId,roomStatusHandle,ENTER,SNAPSHOT);
+                User user = this.getUserForced(id);
+                this.sendRoomStatusEvent(user,roomId,roomStatusHandle,ENTER,SNAPSHOT);
             }
 
             executor.execute(new Runnable() {
@@ -242,162 +372,89 @@ public class ChatRoom {
         }
     }
     
+    public void startRoomChatListen(String roomId, Object roomChatHandle) {
+        synchronized(rooms) {
+            logger.trace("Room chat startup " + roomId);
+            
+            Room room = this.getRoomForced(roomId);
+            
+            room.setMessageHandle(roomChatHandle);
+        }
+        
+    }
+
+    // ROOM LIFECYCLE
+        // OUT
+    
     public void stopRoomListen(String roomId) {
         synchronized(rooms) {
             if (!rooms.containsKey(roomId)) {
                 return;
             }
+            logger.trace("Room user-list stop " + roomId);
+            
             Room room = rooms.get(roomId);
             room.setStatusHandle(null);
-            if (room.isEmpty() && !room.isListened()) {
-                rooms.remove(roomId);
-            }
+            
+            this.checkRoom(room);
         }
     }
+    
+    public void stopRoomChatListen(String roomId) {
+        synchronized(rooms) {
+            if (!rooms.containsKey(roomId)) {
+                return;
+            }
+            logger.trace("Room chat stop " + roomId);
+            
+            Room room = rooms.get(roomId);
+            room.setMessageHandle(null);
+            
+            this.checkRoom(room);
+        }
+        
+    }
+    
+    // ROOM EVENTS
 
     //synchronized(rooms) {
-    private void sendRoomStatusEvent(final String id, final String roomId, final Object roomStatusHandle, boolean entering, final boolean realTimeEvent) {
+    void sendRoomStatusEvent(final User user, final String roomId, final Object roomStatusHandle, boolean entering, final boolean realTimeEvent) {
         if (entering) {
             executor.execute(new Runnable() {
                 public void run() {
-                    listener.onUserEnter(id, roomId, roomStatusHandle, realTimeEvent);
+                    listener.onUserEnter(user, roomId, roomStatusHandle, realTimeEvent);
                 }
             });
         } else {
             executor.execute(new Runnable() {
                 public void run() {
-                    listener.onUserExit(id, roomId, roomStatusHandle);
+                    listener.onUserExit(user, roomId, roomStatusHandle);
                 }
             });
         }
     }
     
-   
     
-    private class User {
-
-        private String id;
-        private String nick;
-        private String statusId = "";
-        private String status = "";
-        
-        private Object statusHandle = null;
-        private Object messagesHandle = null;
-        
-        private Set<Room> rooms = new HashSet<Room>();
-        
-        
-        public User(String id) {
-            this.id = id;
-        }
-        
-        public Object getStatusHandle() {
-            return this.statusHandle;
-        }
-
-        public void enterRoom(Room room) {
-            room.addUser(this.id);
-            this.rooms.add(room);
-        }
-
-        public void leaveRoom(Room room) {
-            room.removeUser(this.id);
-            this.rooms.remove(room);
-        }
-
-        public String getStatusId() {
-            return this.statusId;
-        }
-
-        public void setNick(String nick) {
-            this.nick = nick;
-            
-            if (this.statusHandle != null) {
-                sendUserStatusEvent(this.id, this.nick, null, null, this.statusHandle, REALTIME);
+    void sendRoomMessageEvent(final User user, final String room, final Object messageHandle, final String message) {
+        final String nick = user.getNick();
+        executor.execute(new Runnable() {
+            public void run() {
+                listener.onUserMessage(nick,message,room,messageHandle,true);
             }
-        }
-        
-        public void setStatus(String status, String statusId) {
-            this.status = status;
-            this.statusId = statusId;
-            
-            if (this.statusHandle != null) {
-                sendUserStatusEvent(this.id, null, this.statusId, this.status, this.statusHandle, REALTIME);
-            }
-        }
-        
-        public boolean isListened() {
-            return this.statusHandle != null || this.messagesHandle != null;
-        }
-        
-        public String getNick() {
-            return this.nick;
-        }
-
-        public String getStatus() {
-            return this.status;
-        }
-        
-        public void setStatusHandle(Object statusHandle) {
-            this.statusHandle = statusHandle;
-        }
-
-        public void setHandle(Object messagesHandle) {
-            this.messagesHandle = messagesHandle;
-        }
-        
-        public Iterator<Room> getRooms() {
-            return rooms.iterator();
-        }
-        
-       
+        });
     }
+
     
-    private class Room {
-        
-        private String roomId;
-        private Set<String> users = new HashSet<String>();
-        private Object statusHandle = null;
-        private Object messageHandle = null;
-        
-        public Room(String roomId) {
-            this.roomId = roomId;
+    //This method is not in the original implementation --> we should use the "extra" channel
+    public Object getUserStatusHandle(String id) { 
+        synchronized(users) {
+            if (!users.containsKey(id)) {
+                return null;
+            } 
+            
+            User user = users.get(id);
+            return user.getStatusHandle();
         }
-       
-        public boolean isEmpty() {
-            return users.isEmpty();
-        }
-        
-        public boolean isListened() {
-            return this.statusHandle != null || this.messageHandle != null;
-        }
-
-        public void setStatusHandle(Object roomStatusHandle) {
-            this.statusHandle = roomStatusHandle;
-        }
-        
-        public void setMessageHandle(Object messageHandle) {
-            this.messageHandle = messageHandle;
-        }
-        
-        void addUser(String id) {
-            this.users.add(id);
-            if (this.statusHandle != null) {
-                sendRoomStatusEvent(id, this.roomId, this.statusHandle, ENTER, REALTIME);
-            }
-        }
-
-        void removeUser(String id) {
-            if (this.users.remove(id) && this.statusHandle != null ) {
-                sendRoomStatusEvent(id, this.roomId, this.statusHandle, EXIT, REALTIME);
-            }
-        }
-        
-        public Iterator<String> getUsers() {
-            return this.users.iterator();
-        }
-        
-
     }
 
     

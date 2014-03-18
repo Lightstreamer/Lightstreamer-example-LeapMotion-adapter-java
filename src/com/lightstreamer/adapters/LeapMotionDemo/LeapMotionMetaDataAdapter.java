@@ -103,10 +103,10 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
                     try {
                         this.loadFeed();
                     } catch (CreditsException e) {
-                        throw new ItemsException("Feed is not available");
+                        throw new ItemsException("Feed unavailable");
                     }
                     ChatRoom chat = this.feed.getChatFeed();
-                    chat.addUser(val); 
+                    chat.startUser(val);
                     split[i] = Constants.USER_SUBSCRIPTION + val;
                 }
             }
@@ -280,15 +280,18 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
             Map<String,String> sessionInfo = sessions.remove(session);
             String id = sessionInfo.get(Constants.USER_ID);
             if (id != null) {
+                ids.remove(id);
+                
                 try {
                     this.loadFeed();
                 } catch (CreditsException e) {
                     logger.error("Unexpected: feed not available");
                     return;
                 }
-                logger.info("Clearing user " + id);
-                ids.remove(id);
-                this.feed.getChatFeed().removeUser(id);
+                
+                ChatRoom chat = this.feed.getChatFeed();
+                chat.leaveAllRooms(id);
+                chat.stopUser(id);
             }
         }
     }

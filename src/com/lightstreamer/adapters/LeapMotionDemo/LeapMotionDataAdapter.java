@@ -27,6 +27,7 @@ import com.lightstreamer.adapters.LeapMotionDemo.engine3D.Universe;
 import com.lightstreamer.adapters.LeapMotionDemo.engine3D.UniverseListener;
 import com.lightstreamer.adapters.LeapMotionDemo.room.ChatRoom;
 import com.lightstreamer.adapters.LeapMotionDemo.room.ChatRoomListener;
+import com.lightstreamer.adapters.LeapMotionDemo.room.User;
 import com.lightstreamer.interfaces.data.DataProviderException;
 import com.lightstreamer.interfaces.data.FailureException;
 import com.lightstreamer.interfaces.data.ItemEventListener;
@@ -167,7 +168,8 @@ public class LeapMotionDataAdapter implements SmartDataProvider, UniverseListene
     //user related events sequentiality is ensured by the chat class; are only generated if there is the associated handle  
 
     @Override
-    public void onUserEnter(String id, String room, Object roomStatusHandle, boolean realTimeEvent) {
+    public void onUserEnter(User user, String room, Object roomStatusHandle, boolean realTimeEvent) {
+        String id = user.getId();
         logger.debug(id + " enters " + room);
         
         HashMap<String, String> update = new HashMap<String, String>();
@@ -188,7 +190,8 @@ public class LeapMotionDataAdapter implements SmartDataProvider, UniverseListene
     }
 
     @Override
-    public void onUserExit(String id, String room, Object roomStatusHandle) {
+    public void onUserExit(User user, String room, Object roomStatusHandle) {
+        String id = user.getId();
         logger.debug(id + " exits " + room);
         
         HashMap<String, String> update = new HashMap<String, String>();
@@ -202,19 +205,23 @@ public class LeapMotionDataAdapter implements SmartDataProvider, UniverseListene
 
     
     @Override
-    public void onUserStatusChange(String id, String nick, String statusId, String status, Object userStatusHandle, boolean realTimeEvent) {
+    public void onUserStatusChange(User user, String nick, String statusId, String status, Map<String,String> extra, Object userStatusHandle, boolean realTimeEvent) {
+        String id = user.getId();
         logger.debug(id + " has new status/nick");
         
-        HashMap<String, String> update = new HashMap<String, String>();
+        if (extra == null) {
+            extra =  new HashMap<String, String>();
+        }
+       
         if (nick != null) {
-            update.put("nick", nick);
+            extra.put("nick", nick);
         }
         if (status != null) {
-            update.put("status", status);
-            update.put("statusId", statusId);
+            extra.put("status", status);
+            extra.put("statusId", statusId);
         }
         
-        this.listener.smartUpdate(userStatusHandle, update, !realTimeEvent);
+        this.listener.smartUpdate(userStatusHandle, extra, !realTimeEvent);
         
         //note: in case of a !realtime event, if we assign an initial movement to the players we'll have to check if the player for this user already exists and grab its forces
         
@@ -222,7 +229,7 @@ public class LeapMotionDataAdapter implements SmartDataProvider, UniverseListene
 
     @Override
     public void onUserMessage(String id, String message, String room, Object roomHandle, boolean realTimeEvent) {
-      //not used - not implemented
+      //not used
         logger.debug(id + " sent a message to " + room);
     }
 
