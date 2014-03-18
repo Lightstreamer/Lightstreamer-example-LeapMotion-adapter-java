@@ -48,11 +48,8 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
     private ConcurrentHashMap<String,String> ids = new ConcurrentHashMap<String,String>();
     
     private LeapMotionDataAdapter feed;
-    
-    private int nextId = 0;
-    
-    private static final String LOGGER_CAT = "LS_demos_Logger.LeapDemo";
-    public static Logger logger;
+
+    private Logger logger;
 
     @Override
     public void init(Map params, File configDir) throws MetadataProviderException {
@@ -67,7 +64,7 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
             }
         } //else the bridge to logback is expected
         
-        logger = Logger.getLogger(LOGGER_CAT);
+        logger = Logger.getLogger(Constants.LOGGER_CAT);
         
         // Read the Adapter Set name, which is supplied by the Server as a parameter
         this.adapterSetId = (String) params.get("adapters_conf.id");
@@ -83,6 +80,7 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
                 synchronized(sessions) {
                     Map<String,String> sessionInfo = sessions.get(session);
                     if (sessionInfo == null) {
+                        logger.warn("Can't find session " + session);
                         throw new ItemsException("Can't find session");
                     }
                     
@@ -90,11 +88,13 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
                         //currently permit only one id per session 
                         String prevVal = sessionInfo.get(Constants.USER_ID);
                         if (!val.equals(prevVal)) {
+                            logger.warn("Session alredy owns an ID: " + val);
                             throw new ItemsException("Session alredy owns an ID: " + val);
                         }
                         
                     } else {
                         if (ids.containsKey(val)) {
+                            logger.debug("Id already taken: " + val);
                             throw new ItemsException("Id already taken, try again");
                         } 
                         sessionInfo.put(Constants.USER_ID, val);
@@ -103,7 +103,7 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
                     try {
                         this.loadFeed();
                     } catch (CreditsException e) {
-                        //TODO what now?
+                        throw new ItemsException("Feed is not available");
                     }
                     ChatRoom chat = this.feed.getChatFeed();
                     chat.addUser(val); 
@@ -144,10 +144,12 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
         synchronized(sessions) {
             Map<String,String> sessionInfo = sessions.get(session);
             if (sessionInfo == null) {
+                logger.warn("Can't find session " + session);
                 throw new CreditsException(-1, "Can't find user id (session missing)");
             }
             id = sessionInfo.get(Constants.USER_ID);
             if (id == null) {
+                logger.warn("Can't find user id");
                 throw new CreditsException(-2, "Can't find user id (value missing)");
             }
         }
@@ -159,38 +161,63 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
         //grab| <-- grab the cube
         //release| <-- release the cube
         //move| <-- move the cube
+        
         String val;
         if (( val = Constants.getVal(message,Constants.NICK_MESSAGE)) != null) {
+            logger.debug("new nick message from "+id+" received: " + message);
+            
             ChatRoom chat = this.feed.getChatFeed();
             chat.changeUserNick(id, val);
             
         } else if (( val = Constants.getVal(message,Constants.STATUS_MESSAGE)) != null) {
+            logger.debug("new status message from "+id+" received: " + message);
+            
             ChatRoom chat = this.feed.getChatFeed();
             chat.changeUserStatus(id, val, Constants.VOID_STATUS_ID);
             
         } else if (( val = Constants.getVal(message,Constants.ENTER_ROOM)) != null) {
+            logger.debug("new enter-room message from "+id+" received: " + message);
+            
             ChatRoom chat = this.feed.getChatFeed();
             chat.enterRoom(id,val);
             
         } else if (( val = Constants.getVal(message,Constants.EXIT_ROOM)) != null) {
+            logger.debug("new exit-room message from "+id+" received: " + message);
+            
             ChatRoom chat = this.feed.getChatFeed();
             chat.leaveRoom(id,val);
             
         } else if (( val = Constants.getVal(message,Constants.GRAB_MESSAGE)) != null) {
+            if (logger.isTraceEnabled()) {
+                logger.trace("new grab message from "+id+" received: " + message);
+            }
+            
             Universe universe = this.feed.getUniverse();
             universe.block(id,val);
             
         } else if (( val = Constants.getVal(message,Constants.RELEASE_MESSAGE)) != null) {
+            if (logger.isTraceEnabled()) {
+                logger.trace("new release message from "+id+" received: " + message);
+            }
+            
             Universe universe = this.feed.getUniverse();
             String[] values = val.split(Constants.SPLIT_CHAR_REG);
             double[] dobuleValues = getDoubles(values);
             universe.release(id,values[0],dobuleValues[0],dobuleValues[1],dobuleValues[2]);
             
         } else if (( val = Constants.getVal(message,Constants.MOVE_MESSAGE)) != null) {
+            if (logger.isTraceEnabled()) {
+                logger.trace("new move message from "+id+" received: " + message);
+            }
+            
             Universe universe = this.feed.getUniverse();
             String[] values = val.split(Constants.SPLIT_CHAR_REG);
             double[] dobuleValues = getDoubles(values);
             universe.move(id,values[0],dobuleValues[0],dobuleValues[1],dobuleValues[2]);
+            
+        } else {
+            logger.warn("unexpected message from "+id+" received: " + message);
+            throw new CreditsException(-3, "Unexpected message");
         }
     }
     
@@ -218,6 +245,7 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
                  // Get the LeapMotionDataAdapter instance to bind it with this
                  // Metadata Adapter and send chat messages through it
                  this.feed = LeapMotionDataAdapter.feedMap.get(this.adapterSetId);
+                 logger.debug("LeapMotionDataAdapter bound");
              } catch(Throwable t) {
                  // It can happen if the Chat Data Adapter jar was not even
                  // included in the Adapter Set lib directory (the LeapMotion
@@ -240,6 +268,7 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
     @Override
     public void notifyNewSession(String user, String session, Map sessionInfo) throws CreditsException, NotificationException {
         // Register the session details on the sessions HashMap.
+        logger.info("New session available " + session);
         sessions.put(session, sessionInfo);
     }
     
@@ -247,14 +276,17 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
     public void notifySessionClose(String session) throws NotificationException {
         synchronized(sessions) {
             //we have to remove session informations from the session HashMap
+            logger.info("Clearing session " + session);
             Map<String,String> sessionInfo = sessions.remove(session);
             String id = sessionInfo.get(Constants.USER_ID);
             if (id != null) {
                 try {
                     this.loadFeed();
                 } catch (CreditsException e) {
-                    //TODO what now?
+                    logger.error("Unexpected: feed not available");
+                    return;
                 }
+                logger.info("Clearing user " + id);
                 ids.remove(id);
                 this.feed.getChatFeed().removeUser(id);
             }

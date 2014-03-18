@@ -38,8 +38,7 @@ public class LeapMotionDataAdapter implements SmartDataProvider, UniverseListene
     public static final ConcurrentHashMap<String, LeapMotionDataAdapter> feedMap =
             new ConcurrentHashMap<String, LeapMotionDataAdapter>();
    
-    public Logger logger;
-    //public Logger tracer;
+    private Logger logger;
     
     private Universe universe = new Universe(this);
     private ChatRoom chat = new ChatRoom(this);
@@ -59,10 +58,8 @@ public class LeapMotionDataAdapter implements SmartDataProvider, UniverseListene
         } //else the bridge to logback is expected
         
         logger = Logger.getLogger(Constants.LOGGER_CAT);
-        //tracer = Logger.getLogger(TRACER_CAT);
         
         logger.info("Adapter Logger start.");
-        //tracer.info("Trace Logger start.");
         
         // Read the Adapter Set name, which is supplied by the Server as a parameter
         String adapterSetId = (String) params.get("adapters_conf.id");
@@ -70,7 +67,6 @@ public class LeapMotionDataAdapter implements SmartDataProvider, UniverseListene
         // Put a reference to this instance on a static map
         // to be read by the Metadata Adapter
         feedMap.put(adapterSetId, this);
-        
         
         logger.info("LeapMotionAdapter ready");
         
@@ -252,6 +248,8 @@ public class LeapMotionDataAdapter implements SmartDataProvider, UniverseListene
     
     @Override
     public void onWorldComplete(String worldId, Object worldHandle) {
+        logger.debug("World " + worldId + " flushed");
+        
         if (worldHandle != null) {
             this.listener.smartEndOfSnapshot(worldHandle);
         }
@@ -276,6 +274,11 @@ public class LeapMotionDataAdapter implements SmartDataProvider, UniverseListene
     @Override
     public void onPlayerMoved(String id, String worldId, Object worldHandle,
             HashMap<String, String> currentPosition, boolean forced) {
+        
+        if (logger.isTraceEnabled()) {
+            logger.trace(id + " in world " + worldId + " moves");
+        }
+        
         if (!forced) {
             if (worldHandle != null) {
                 currentPosition.put(SmartDataProvider.KEY_FIELD, id);
@@ -293,6 +296,10 @@ public class LeapMotionDataAdapter implements SmartDataProvider, UniverseListene
     @Override
     public void onPlayerActed(String id, String worldId, Object worldHandle,
             HashMap<String, String> currentImpulses) {
+        
+        if (logger.isTraceEnabled()) {
+            logger.trace(id + " in world " + worldId + " acts"); //block/release actions
+        }
         
         Object userHandle = chat.getUserStatusHandle(id);
         if (userHandle != null) {
