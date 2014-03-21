@@ -221,10 +221,9 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
         }
     }
     
-    private static double[] getDoubles(String[] values) {
+    private static double[] getDoubles(String[] values) throws CreditsException {
         if (values.length != 4) {
-            //TODO throw
-            return null;
+            throw new CreditsException(-4, "wrongly formatted message");
         }
         double[] res = new double[3];
         try {
@@ -232,8 +231,7 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
             res[1] = Double.parseDouble(values[2]);
             res[2] = Double.parseDouble(values[3]);
         } catch(NumberFormatException nf) {
-            //TODO throw
-            return null;
+            throw new CreditsException(-5, "wrongly formatted number");
         }
         return res;
     }
