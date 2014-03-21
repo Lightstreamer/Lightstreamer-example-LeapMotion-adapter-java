@@ -17,10 +17,11 @@ package com.lightstreamer.adapters.LeapMotionDemo.engine3D;
 
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+
+import org.apache.log4j.Logger;
 
 import com.lightstreamer.adapters.LeapMotionDemo.Constants;
 
@@ -36,6 +37,7 @@ public class World extends Thread {
     private static final boolean NOT_FORCED = false;
     private static final boolean FORCED = true;
     
+    private Logger logger = Logger.getLogger(Constants.WORLD_CAT);
     
     private Executor executor =  Executors.newSingleThreadExecutor();
 
@@ -45,8 +47,6 @@ public class World extends Thread {
     private ConcurrentHashMap<String,BaseModelBody> users = new ConcurrentHashMap<String,BaseModelBody>();
     private Object handle = null;
     
-    
-
     private int frameInterval = 0;
     private double factorWorld = 1.0;
     
@@ -58,9 +58,12 @@ public class World extends Thread {
         
         this.frameInterval = frameInterval;
         this.factorWorld = (double)(this.frameInterval / Constants.BASE_RATE);
+        
+        logger.info("A new world is born: " + id + " ("+this.frameInterval+")");
     }
     
     synchronized void setFrameInterval(int frameInterval) {
+        logger.info(this.id+"|Frame interval changed: " + frameInterval);
         this.frameInterval = frameInterval;
         this.factorWorld = (double)(this.frameInterval / Constants.BASE_RATE);
     }
@@ -74,9 +77,13 @@ public class World extends Thread {
     }
     
     synchronized void setHandle(Object handle) {
+        
         this.handle = handle;
         
         if (this.handle != null) {
+            logger.info(this.id+"|New handle set");
+            logger.debug(this.id+"|preparing snapshot events");
+            
             Enumeration<BaseModelBody> players = this.users.elements();
             while(players.hasMoreElements()) {
                 BaseModelBody player = players.nextElement();
@@ -90,6 +97,9 @@ public class World extends Thread {
                     listener.onWorldComplete(fid,fhandle);
                 }
             });
+            
+        } else {
+            logger.info(this.id+"|Handle removed");
         }
     }
     
@@ -100,23 +110,33 @@ public class World extends Thread {
         BaseModelBody player = new BaseModelBody(id);
         
         this.users.put(id,player); 
+        logger.info(this.id+"|A new user entered" + id);
+        
         this.sendPlayerStatus(id, this.id, this.handle, player, ENTER, REALTIME);
+        
     }
     
 
     synchronized void removeUser(String id) {
         this.users.remove(id);
+        logger.info(this.id+"|A user left" + id);
+        
         this.sendPlayerStatus(id, this.id, this.handle, null, EXIT, REALTIME);
     }
     
     synchronized void armageddon() {
         this.stop = true;
+        logger.info(this.id+"|World ended");
     }
     
     @Override
     public void run () {
         
         while (!stop) {
+            
+            if (logger.isTraceEnabled()) {
+                logger.trace(this.id+"|generating frame");
+            }
                         
             Enumeration<BaseModelBody> players = this.users.elements();
             while(players.hasMoreElements()) {
@@ -128,6 +148,10 @@ public class World extends Thread {
                 this.sendPlayerPosition(player.getId(), this.id, this.handle, player, NOT_FORCED);
             }
             
+            if (logger.isTraceEnabled()) {
+                logger.trace(this.id+"|frame generated");
+            }
+            
             try {
                 Thread.sleep(this.frameInterval);
             } catch (InterruptedException ie) {
@@ -137,6 +161,8 @@ public class World extends Thread {
       
     private synchronized void sendPlayerStatus(final String id, final String worldId, final Object worldHandle, BaseModelBody player, final int updateType, final boolean isRealTime) {
         if (updateType == ENTER) {
+            logger.debug(this.id+"|Preparing enter event for " + id);
+            
             final HashMap<String,String> currentPosition = new HashMap<String,String>();
             player.fillPositionMap(currentPosition);
             
@@ -150,6 +176,8 @@ public class World extends Thread {
                 } 
             });
         } else if (updateType == EXIT) {
+           logger.debug(this.id+"|Preparing exit event for " + id);
+            
            executor.execute(new Runnable() {
                @Override
                public void run() {
@@ -160,6 +188,11 @@ public class World extends Thread {
     }
     
     private synchronized void sendPlayerPosition(final String id, final String worldId, final Object worldHandle, BaseModelBody player, final boolean forced) {
+        if (logger.isTraceEnabled()) {
+            logger.trace(this.id+"|Preparing position event for " + id);
+        }
+        
+        
         final HashMap<String, String> currentPosition = new HashMap<String, String>();
         player.fillPositionMap(currentPosition);
         
@@ -172,6 +205,10 @@ public class World extends Thread {
     }
     
     private synchronized void sendPlayerAction(final String id, final String worldId, final Object worldHandle, BaseModelBody player) {
+        if (logger.isTraceEnabled()) {
+            logger.trace(this.id+"|Preparing action event for " + id);
+        }
+        
         final HashMap<String, String> currentImpulses = new HashMap<String, String>();
         player.fillImpulseMap(currentImpulses);
         
@@ -187,6 +224,9 @@ public class World extends Thread {
         if (!this.users.containsKey(playerId)) {
             return;
         }
+        if (logger.isTraceEnabled()) {
+            logger.trace(this.id+"|blocking " + id);
+        }
         BaseModelBody player = this.users.get(playerId);
         player.block();
         this.sendPlayerAction(playerId, this.id, this.handle, player);
@@ -195,6 +235,9 @@ public class World extends Thread {
     public synchronized void release(String playerId, double x, double y, double z) {
         if (!this.users.containsKey(playerId)) {
             return;
+        }
+        if (logger.isTraceEnabled()) {
+            logger.trace(this.id+"|releasing " + id);
         }
         BaseModelBody player = this.users.get(playerId);
         player.setImpulse(IBody.Axis.X, x);
@@ -212,6 +255,9 @@ public class World extends Thread {
         if (!this.users.containsKey(playerId)) {
             return;
         }
+        if (logger.isTraceEnabled()) {
+            logger.trace(this.id+"|moving " + id);
+        }
         BaseModelBody player = this.users.get(playerId);
         
         player.setX(x);
@@ -219,14 +265,6 @@ public class World extends Thread {
         player.setZ(z);
        
         this.sendPlayerPosition(playerId, this.id, this.handle, player, FORCED);
-    }
-    
-    private Random tempRandom = new Random();
-    private void tempRandomTorque(BaseModelBody player) {
-        player.setTourque(IBody.Axis.X, Math.round(tempRandom.nextDouble()*5));
-        player.setTourque(IBody.Axis.Y, Math.round(tempRandom.nextDouble()*5));
-        player.setTourque(IBody.Axis.Z, Math.round(tempRandom.nextDouble()*5));
-        
     }
 
 }

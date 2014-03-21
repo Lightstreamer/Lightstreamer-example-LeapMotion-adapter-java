@@ -19,13 +19,18 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 
+import org.apache.log4j.Logger;
+
 import com.croftsoft.core.lang.EnumUnknownException;
 import com.croftsoft.core.math.MathLib;
 import com.croftsoft.core.math.axis.AxisAngle;
 import com.croftsoft.core.math.axis.AxisAngleImp;
 import com.croftsoft.core.math.axis.AxisAngleMut;
+import com.lightstreamer.adapters.LeapMotionDemo.Constants;
 
 public class BaseModelBody implements IBody {
+    
+    private Logger logger = Logger.getLogger(Constants.WORLD_CAT);
 
     private static final double ROTATE_DELTA    = 0.5;
     private static final double TRANSLATE_DELTA = 0.002;
@@ -334,6 +339,10 @@ public class BaseModelBody implements IBody {
     }
     
     public void fillPositionMap(HashMap<String,String> model) {
+        if (logger.isTraceEnabled()) {
+            logger.trace(this.id+"|preparing position update");
+        }
+        
         try {
             model.put("posX", toBase64(this.x));
             model.put("posY", toBase64(this.y));
@@ -350,6 +359,10 @@ public class BaseModelBody implements IBody {
     }
     
     public void fillImpulseMap(HashMap<String,String> model) {
+        if (logger.isTraceEnabled()) {
+            logger.trace(this.id+"|preparing speed update");
+        }
+        
         model.put("dVx", String.valueOf(this.vX));
         model.put("dVy", String.valueOf(this.vY));
         model.put("dVz", String.valueOf(this.vZ));
