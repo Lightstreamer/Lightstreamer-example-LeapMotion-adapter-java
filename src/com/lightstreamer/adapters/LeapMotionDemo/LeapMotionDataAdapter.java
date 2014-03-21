@@ -69,7 +69,7 @@ public class LeapMotionDataAdapter implements SmartDataProvider, UniverseListene
         // to be read by the Metadata Adapter
         feedMap.put(adapterSetId, this);
         
-        logger.info("LeapMotionAdapter ready");
+        logger.info("LeapMotionDataAdapter ready");
         
     }
     
