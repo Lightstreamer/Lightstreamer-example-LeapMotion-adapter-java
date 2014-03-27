@@ -1,9 +1,20 @@
 # Lightstreamer - Leap Motion Demo - Java Adapter #
 <!-- START DESCRIPTION lightstreamer-example-leapmotion-adapter-java -->
 
-_TODO Intro_
+A simple application showing the integration between a [Leap Motion Controller](https://www.leapmotion.com/) and the [Lightstreamer JavaScript Client library](http://www.lightstreamer.com/docs/client_javascript_uni_api/index.html).
 
-_TODO Description_
+This demo displays a game field containing some small blocks. Each block is controlled by a different user connected to the same application through a Leap Motion Controller device. 
+
+This adapter maintains a representation of the world containing all of the users' blocks and updates it accordingly with the clients commands.
+Each block in the world can be in either one of the following statuses:
+
+* Grabbed: in this case all the positions are sent to the Lightstreamer server by the client. The server updates the world without any 
+modification on the received position, and broadcasts the positions back to all the connected clients. 
+* Released: the client only sends to the Lightstreamer server the forces to apply to its object in the world. The server broadcasts such forces to 
+the clients, that are then able to update the world representation themselves, while also keeping its own world updated by 
+applying such forces. Every few seconds the server will also broadcast the current positions to re-synchronize the clients with the 
+server positions. 
+
 <!-- END DESCRIPTION lightstreamer-example-leapmotion-adapter-java -->
 
 # Build #
