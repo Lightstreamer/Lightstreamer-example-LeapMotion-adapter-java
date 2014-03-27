@@ -19,9 +19,7 @@ server positions.
 
 # Build #
 
-_TODO ready-made zip_
-
-Otherwise follow these steps:
+To build the adapter follow these steps:
 
 * Get the ls-adapter-interface.jar and ls-generic-adapters.jar from the Lightstreamer distribution.
 * Get a log4j 1.2 jar somewhere (there is one in the Lightstreamer distribution) 
