@@ -141,6 +141,7 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
         
         //get the user id of the current user
         String id = null;
+        String IP = null;
         synchronized(sessions) {
             Map<String,String> sessionInfo = sessions.get(session);
             if (sessionInfo == null) {
@@ -152,6 +153,8 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
                 logger.warn("Can't find user id");
                 throw new CreditsException(-2, "Can't find user id (value missing)");
             }
+            
+            IP =  sessionInfo.get("REMOTE_IP");
         }
         
         //nick| <-- changing nick
@@ -167,13 +170,13 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
             logger.debug("new nick message from "+id+" received: " + message);
             
             ChatRoom chat = this.feed.getChatFeed();
-            chat.changeUserNick(id, val);
+            chat.changeUserNick(id, val, IP);
             
         } else if (( val = Constants.getVal(message,Constants.STATUS_MESSAGE)) != null) {
             logger.debug("new status message from "+id+" received: " + message);
             
             ChatRoom chat = this.feed.getChatFeed();
-            chat.changeUserStatus(id, val, Constants.VOID_STATUS_ID);
+            chat.changeUserStatus(id, val, Constants.VOID_STATUS_ID, IP);
             
         } else if (( val = Constants.getVal(message,Constants.ENTER_ROOM)) != null) {
             logger.debug("new enter-room message from "+id+" received: " + message);

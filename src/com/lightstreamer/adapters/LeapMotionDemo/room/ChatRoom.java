@@ -198,24 +198,24 @@ public class ChatRoom {
     // USER ACTIONS 
         // PROPERTIES
     
-    public void changeUserNick(String id, String nick) {
+    public void changeUserNick(String id, String nick, String IP) {
         synchronized(users) {
             if (!users.containsKey(id)) {
                 return;
             }
-            logger.debug("User new nick " + id + ": " + nick);
+            logger.debug(IP+"| User new nick " + id + ": " + nick);
             
             User user = users.get(id);
             user.setNick(nick);
         }
     }
     
-    public void changeUserStatus(String id, String status, String statusId) {
+    public void changeUserStatus(String id, String status, String statusId, String IP) {
         synchronized(users) {
             if (!users.containsKey(id)) {
                 return;
             }
-            logger.debug("User new status " + id + ": " + status);
+            logger.debug(IP+"| User new status " + id + ": " + status);
             
             User user = users.get(id);
             user.setStatus(status,statusId);
@@ -277,13 +277,13 @@ public class ChatRoom {
     // USER ACTIONS 
         // CHAT
     
-    public void broadcastMessage(String id, String roomId, String message) {
+    public void broadcastMessage(String id, String roomId, String message, String IP) {
         synchronized(users) {
             synchronized(rooms) {
                 if (!users.containsKey(id) || !rooms.containsKey(roomId)) {
                     return;
                 }
-                logger.debug("User " + id + " message to room " + roomId + ": " + message);
+                logger.debug(IP + "| User " + id + " message to room " + roomId + ": " + message);
                 
                 User user = users.get(id);
                 Room room = rooms.get(roomId);
