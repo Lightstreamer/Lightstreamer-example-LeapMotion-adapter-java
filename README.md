@@ -27,8 +27,7 @@ server positions.
 If you want to install a version of this demo in your local Lightstreamer Server, follow these steps.
 * Download *Lightstreamer Server Vivace* (make sure you use Vivace edition, otherwise you will see a limit on the event rate; Lightstreamer Server comes with a free non-expiring demo license for 20 connected users) from [Lightstreamer Download page](http://www.lightstreamer.com/download.htm), and install it, as explained in the `GETTING_STARTED.TXT` file in the installation home directory.
 * Get the `deploy.zip` file of the [latest release](https://github.com/Weswit/Lightstreamer-example-LeapMotion-adapter-java/releases), unzip it and copy the just unzipped `LeapDemo` folder into the `adapters` folder of your Lightstreamer Server installation.
-* Download [croftsoft](http://sourceforge.net/projects/croftsoft/files/) library and compile a `croftsoft-math.jar` version. Please make sure to include: applet, io, inlp, lang and math packages.
-* Copy the just compiled `croftsoft-math.jar` file in the `adapters/LeapDemo/lib` folder.
+* Download [croftsoft](http://sourceforge.net/projects/croftsoft/files/) library and compile a `croftsoft-math.jar` version. Please make sure to include: applet, io, inlp, lang and math packages. Copy the just compiled `croftsoft-math.jar` file in the `adapters/LeapDemo/lib` folder.
 * Launch Lightstreamer Server.
 * Test the Adapter, launching one of the clients listed in [Clients Using This Adapter](https://github.com/Weswit/Lightstreamer-example-LeapMotion-adapter-java#clients-using-this-adapter).
 
@@ -36,7 +35,7 @@ If you want to install a version of this demo in your local Lightstreamer Server
 To build your own version of `LS_leapdemo_adapters.jar`, instead of using the one provided in the `deploy.zip` file from the [Install](https://github.com/Weswit/Lightstreamer-example-LeapMotion-adapter-java#install) section above, follow these steps:
 * Clone this project
 * Get the `ls-adapter-interface.jar`, `ls-generic-adapters.jar`, and `log4j-1.2.15.jar` from the [Lightstreamer distribution](http://www.lightstreamer.com/download) and copy them into the `lib` folder..
-* Download [croftsoft](http://sourceforge.net/projects/croftsoft/files/) library and compile a `croftsoft-math.jar` version. Please make sure to include: applet, io, inlp, lang and math packages, and Put the just compiled `croftsoft-math.jar` file in the `lib` folder.
+* Download [croftsoft](http://sourceforge.net/projects/croftsoft/files/) library and compile a `croftsoft-math.jar` version. Please make sure to include: applet, io, inlp, lang and math packages. Put the just compiled `croftsoft-math.jar` file in the `lib` folder.
 * Build the java source files in the `src` folder into a `LS_leapdemo_adapters.jar` file. Here is an example for that:
 ```
  > javac -classpath ./lib/croftsoft-math.jar;./lib/ls-adapter-interface.jar;./lib/ls-generic-adapters.jar;./lib/log4j.jar -d ./classes ./src/com/lightstreamer/adapters/\LeapMotionDemo/*.java ./src/com/lightstreamer/adapters/\LeapMotionDemo/engine3D/*.java ./src/com/lightstreamer/adapters/\LeapMotionDemo/room/*.java
