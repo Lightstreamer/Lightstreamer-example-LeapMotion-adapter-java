@@ -2,5 +2,4 @@ This folder should contain all the library files needed to compile the LeapMotio
 
     log4j-1.2.15.jar form the /shared/lib folder of latest Lighstreamer distribution;
     ls-adapter-interface.jar from the /lib folder of latest Lightstreamer distribution;
-    ls-generic-adapters.jar from the /shared/lib folder of latest Lighstreamer distribution.
-    croftsoft-math.jar CroftSoft Code Library
+    croftsoft-math.jar CroftSoft Code Library.
