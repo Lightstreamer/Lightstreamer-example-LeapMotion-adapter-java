@@ -23,6 +23,31 @@ server positions.
 
 <!-- END DESCRIPTION lightstreamer-example-leapmotion-adapter-java -->
 
+### The Adapter Set Configuration
+
+This Adapter Set is configured and will be referenced by the clients as `LEAPDEMO`. 
+
+The `adapters.xml` file for the *Leap Motion Demo*, should look like:
+
+```xml      
+<?xml version="1.0"?>
+
+<adapters_conf id="LEAPDEMO">
+    <metadata_provider>
+        <adapter_class>com.lightstreamer.adapters.LeapMotionDemo.LeapMotionMetaDataAdapter</adapter_class>
+    </metadata_provider>
+    
+    <data_provider>
+        <adapter_class>com.lightstreamer.adapters.LeapMotionDemo.LeapMotionDataAdapter</adapter_class>
+    </data_provider>
+</adapters_conf>
+```
+
+<i>NOTE: not all configuration options of an Adapter Set are exposed by the file suggested above. 
+You can easily expand your configurations using the generic template, `DOCS-SDKs/sdk_adapter_java_inprocess/doc/adapter_conf_template/adapters.xml`, as a reference.</i><br>
+<br>
+Please refer [here](http://www.lightstreamer.com/docs/base/Lightstreamer/DOCS-SDKs/General%20Concepts.pdf) for more details about Lightstreamer Adapters.
+
 ## Install
 If you want to install a version of this demo in your local Lightstreamer Server, follow these steps:
 * Download *Lightstreamer Server Vivace* (make sure you use Vivace edition, otherwise, you will see a limit on the event rate; Lightstreamer Server comes with a free non-expiring demo license for 20 connected users) from [Lightstreamer Download page](http://www.lightstreamer.com/download.htm), and install it, as explained in the `GETTING_STARTED.TXT` file in the installation home directory.
