@@ -5,7 +5,7 @@ The *Leap Motion Demo* is a simple application showing the integration between a
 
 This project shows the Data Adapter and Metadata Adapters for the *Leap Motion Demo* and how they can be plugged into Lightstreamer Server.
 
-As an example of a client using this adapter, you may refer to the [Lightstreamer - Leap Motion Demo - HTML (LeapJS, Three.js) Client](https://github.com/Weswit/Lightstreamer-example-LeapMotion-client-javascript) and view the corresponding [Live Demo](http://demos.lightstreamer.com/LeapDemo/).
+As an example of a client using this adapter, you may refer to the [Lightstreamer - Leap Motion Demo - HTML (LeapJS, Three.js) Client](https://github.com/Lightstreamer/Lightstreamer-example-LeapMotion-client-javascript) and view the corresponding [Live Demo](http://demos.lightstreamer.com/LeapDemo/).
 
 ## Details
 
@@ -51,13 +51,13 @@ Please refer [here](http://www.lightstreamer.com/docs/base/Lightstreamer/DOCS-SD
 ## Install
 If you want to install a version of this demo in your local Lightstreamer Server, follow these steps:
 * Download *Lightstreamer Server Vivace* (make sure you use Vivace edition, otherwise, you will see a limit on the event rate; Lightstreamer Server comes with a free non-expiring demo license for 20 connected users) from [Lightstreamer Download page](http://www.lightstreamer.com/download.htm), and install it, as explained in the `GETTING_STARTED.TXT` file in the installation home directory.
-* Get the `deploy.zip` file of the [latest release](https://github.com/Weswit/Lightstreamer-example-LeapMotion-adapter-java/releases), unzip it, and copy the just unzipped `LeapDemo` folder into the `adapters` folder of your Lightstreamer Server installation.
+* Get the `deploy.zip` file of the [latest release](https://github.com/Lightstreamer/Lightstreamer-example-LeapMotion-adapter-java/releases), unzip it, and copy the just unzipped `LeapDemo` folder into the `adapters` folder of your Lightstreamer Server installation.
 * Download [croftsoft](http://sourceforge.net/projects/croftsoft/files/) library and compile a `croftsoft-math.jar` version. Please make sure to include: applet, io, inlp, lang, and math packages. Copy the just compiled `croftsoft-math.jar` file in the `adapters/LeapDemo/lib` folder.
 * Launch Lightstreamer Server.
-* Test the Adapter, launching one of the clients listed in [Clients Using This Adapter](https://github.com/Weswit/Lightstreamer-example-LeapMotion-adapter-java#clients-using-this-adapter).
+* Test the Adapter, launching one of the clients listed in [Clients Using This Adapter](https://github.com/Lightstreamer/Lightstreamer-example-LeapMotion-adapter-java#clients-using-this-adapter).
 
 ## Build
-To build your own version of `LS_leapdemo_adapters.jar`, instead of using the one provided in the `deploy.zip` file from the [Install](https://github.com/Weswit/Lightstreamer-example-LeapMotion-adapter-java#install) section above, follow these steps:
+To build your own version of `LS_leapdemo_adapters.jar`, instead of using the one provided in the `deploy.zip` file from the [Install](https://github.com/Lightstreamer/Lightstreamer-example-LeapMotion-adapter-java#install) section above, follow these steps:
 * Clone this project
 * Get the `ls-adapter-interface.jar` file from the [Lightstreamer distribution](http://www.lightstreamer.com/download) and copy it into the `lib` folder.
 * Get the `log4j-1.2.17.jar` file from [Apache log4j](https://logging.apache.org/log4j/1.2/) and copy it into the `lib` folder.
@@ -75,11 +75,11 @@ To build your own version of `LS_leapdemo_adapters.jar`, instead of using the on
 ### Clients Using This Adapter
 <!-- START RELATED_ENTRIES -->
 
-* [Lightstreamer - Leap Motion Demo - HTML Client](https://github.com/Weswit/Lightstreamer-example-LeapMotion-client-javascript)
+* [Lightstreamer - Leap Motion Demo - HTML Client](https://github.com/Lightstreamer/Lightstreamer-example-LeapMotion-client-javascript)
 
 <!-- END RELATED_ENTRIES -->
 
 ## Lightstreamer Compatibility Notes
 
 * Compatible with Lightstreamer SDK for Java In-Process Adapters since 6.0
-- For a version of this example compatible with Lightstreamer SDK for Java Adapters version 5.1, please refer to [this tag](https://github.com/Weswit/Lightstreamer-example-LeapMotion-adapter-java/tree/for_Lightstreamer_5.1).
+- For a version of this example compatible with Lightstreamer SDK for Java Adapters version 5.1, please refer to [this tag](https://github.com/Lightstreamer/Lightstreamer-example-LeapMotion-adapter-java/tree/for_Lightstreamer_5.1).
