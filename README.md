@@ -65,7 +65,7 @@ To build your own version of `LS_leapdemo_adapters.jar`, instead of using the on
 * Build the java source files in the `src` folder into a `LS_leapdemo_adapters.jar` file. Here is an example for that:
 ```
  > javac -classpath ./lib/croftsoft-math.jar;./lib/ls-adapter-interface.jar;./lib/log4j-1.2.17.jar -d ./classes ./src/com/lightstreamer/adapters/\LeapMotionDemo/*.java ./src/com/lightstreamer/adapters/\LeapMotionDemo/engine3D/*.java ./src/com/lightstreamer/adapters/\LeapMotionDemo/room/*.java
- > jar cvf LS_leapdemo_adapters.jar -C tmp_classes com
+ > jar cvf LS_leapdemo_adapters.jar -C classes com
 ```
 * Copy the just compiled `LS_leapdemo_adapters.jar` in the `adapters/LeapDemo/lib` folder of your Lightstreamer Server installation.
 
