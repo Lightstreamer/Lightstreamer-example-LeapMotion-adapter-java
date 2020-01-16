@@ -1,7 +1,7 @@
 # Lightstreamer - Leap Motion Demo - Java Adapter #
 <!-- START DESCRIPTION lightstreamer-example-leapmotion-adapter-java -->
 
-The *Leap Motion Demo* is a simple application showing the integration between a [Leap Motion Controller](https://www.leapmotion.com/) and the [Lightstreamer JavaScript Client library](http://www.lightstreamer.com/docs/client_javascript_uni_api/index.html).
+The *Leap Motion Demo* is a simple application showing the integration between a [Leap Motion Controller](https://www.leapmotion.com/) and the [Lightstreamer JavaScript Client library](https://lightstreamer.com/api/ls-web-client/latest/index.html).
 
 This project shows the Data Adapter and Metadata Adapters for the *Leap Motion Demo* and how they can be plugged into Lightstreamer Server.
 
