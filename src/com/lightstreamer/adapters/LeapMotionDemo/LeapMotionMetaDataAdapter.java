@@ -40,7 +40,7 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
      */
     private String adapterSetId;
     /**
-     * Keeps the client context informations supplied by Lightstreamer on the
+     * Keeps the client context information supplied by Lightstreamer on the
      * new session notifications.
      * Session information is needed to pass the IP to logging purpose.
      */
@@ -276,7 +276,7 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
     @Override
     public void notifySessionClose(String session) throws NotificationException {
         synchronized(sessions) {
-            //we have to remove session informations from the session HashMap
+            //we have to remove session information from the session HashMap
             logger.info("Clearing session " + session);
             Map<String,String> sessionInfo = sessions.remove(session);
             String id = sessionInfo.get(Constants.USER_ID);
