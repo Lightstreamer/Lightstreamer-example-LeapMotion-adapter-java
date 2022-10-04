@@ -87,6 +87,6 @@ Assuming Maven is installed and available in your path you can build the demo by
 ## Lightstreamer Compatibility Notes
 
 
-- Compatible with Lightstreamer SDK for Java In-Process Adapters since 7.3.
+- Compatible with Lightstreamer SDK for Java In-Process Adapters versions 7.3.x.
 - For a version of this example compatible with Lightstreamer SDK for Java Adapters version 6.0, please refer to [this tag](https://github.com/Lightstreamer/Lightstreamer-example-LeapMotion-adapter-java/tree/pre_mvn).
 - For a version of this example compatible with Lightstreamer SDK for Java Adapters version 5.1, please refer to [this tag](https://github.com/Lightstreamer/Lightstreamer-example-LeapMotion-adapter-java/tree/for_Lightstreamer_5.1).
