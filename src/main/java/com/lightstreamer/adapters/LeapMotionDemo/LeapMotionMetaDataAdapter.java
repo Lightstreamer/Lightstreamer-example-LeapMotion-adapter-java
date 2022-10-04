@@ -73,9 +73,9 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
     }
     
     @Override
-    public String[] getItems(String user, String session, String group)
+    public String[] getItems(String user, String session, String group, String dataAdapter)
             throws ItemsException {
-        String[] split = super.getItems(user,session,group);
+        String[] split = super.getItems(user,session,group,dataAdapter);
         for (int i = 0; i<split.length; i++) {
             String val;
             if (( val = Constants.getVal(split[i],Constants.USER_SUBSCRIPTION)) != null) {
@@ -119,7 +119,7 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
     }
     
     @Override
-    public boolean modeMayBeAllowed(String item, Mode mode) {
+    public boolean modeMayBeAllowed(String item, String dataAdapter, Mode mode) {
         if (item.indexOf(Constants.USER_SUBSCRIPTION) == 0 && mode == Mode.DISTINCT) { 
             return true;
             
