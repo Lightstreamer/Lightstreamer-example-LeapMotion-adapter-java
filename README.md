@@ -11,7 +11,7 @@ As an example of a client using this adapter, you may refer to the [Lightstreame
 
 This demo displays a game field containing some small blocks. Each block is controlled by a different user connected to the same application through a Leap Motion Controller device. 
 
-This adapter maintains a representation of the world containing all of the users' blocks and updates it accordingly with the clientsï¿½ commands.
+This adapter maintains a representation of the world containing all of the users' blocks and updates it accordingly with the clients’ commands.
 Each block in the world can be in either one of the following statuses:
 
 * Grabbed: in this case, all the positions are sent to the Lightstreamer server by the client. The server updates the world without any 
@@ -44,15 +44,15 @@ The `adapters.xml` file for the *Leap Motion Demo*, should look like:
 ```
 
 <i>NOTE: not all configuration options of an Adapter Set are exposed by the file suggested above. 
-You can easily expand your configurations using the generic template, see the [Java In-Process Adapter Interface Project](https://github.com/Lightstreamer/Lightstreamer-lib-adapter-java-inprocess#configuration) for details.</i><br>
+You can easily expand your configurations using the generic template, see the [Java In-Process Adapter Interface Project](https://github.com/Lightstreamer/Lightstreamer-lib-adapter-java-inprocess/tree/v7.4.1#configuration) for details.</i><br>
 <br>
-Please refer [here](https://lightstreamer.com/docs/ls-server/latest/General%20Concepts.pdf) for more details about Lightstreamer Adapters.
+Please refer [here](https://lightstreamer.com/docs/ls-server/latest_7_3/General%20Concepts.pdf) for more details about Lightstreamer Adapters.
 
 ## Install
 
 If you want to install a version of this demo in your local Lightstreamer Server, follow these steps:
 * Download *Lightstreamer Server* (Lightstreamer Server comes with a free non-expiring demo license for 20 connected users; this should be preferred to using COMMUNITY edition, otherwise you would see a limit on the event rate) from [Lightstreamer Download page](https://lightstreamer.com/download/), and install it, as explained in the `GETTING_STARTED.TXT` file in the installation home directory.
-* Get the `deploy.zip` file of the [latest release](https://github.com/Lightstreamer/Lightstreamer-example-LeapMotion-adapter-java/releases), unzip it, and copy the just unzipped `LeapDemo` folder into the `adapters` folder of your Lightstreamer Server installation.
+* Get the `deploy.zip` file of the ["Release for Lightstreamer 7.3" release](https://github.com/Lightstreamer/Lightstreamer-example-LeapMotion-adapter-java/releases), unzip it, and copy the just unzipped `LeapDemo` folder into the `adapters` folder of your Lightstreamer Server installation.
 * [Optional] Customize logging settings in log4j configuration file `LeapDemo/classes/log4j2.xml`.
 * Launch Lightstreamer Server.
 * Test the Adapter, launching one of the clients listed in [Clients Using This Adapter](#clients-using-this-adapter).
@@ -87,7 +87,7 @@ Assuming Maven is installed and available in your path you can build the demo by
 ## Lightstreamer Compatibility Notes
 
 
-- Compatible with Lightstreamer SDK for Java In-Process Adapters since version 7.4.0.
+- Compatible with Lightstreamer SDK for Java In-Process Adapters version 7.4.x.
 - For a version of this example compatible with Lightstreamer SDK for Java Adapters versions 7.0 to 7.3, please refer to [this tag](https://github.com/Lightstreamer/Lightstreamer-example-LeapMotion-adapter-java/tree/last_for_interface_7.3).
 - For a version of this example compatible with Lightstreamer SDK for Java Adapters version 6.0, please refer to [this tag](https://github.com/Lightstreamer/Lightstreamer-example-LeapMotion-adapter-java/tree/pre_mvn).
 - For a version of this example compatible with Lightstreamer SDK for Java Adapters version 5.1, please refer to [this tag](https://github.com/Lightstreamer/Lightstreamer-example-LeapMotion-adapter-java/tree/for_Lightstreamer_5.1).
