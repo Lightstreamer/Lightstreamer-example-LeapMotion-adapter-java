@@ -11,7 +11,7 @@ As an example of a client using this adapter, you may refer to the [Lightstreame
 
 This demo displays a game field containing some small blocks. Each block is controlled by a different user connected to the same application through a Leap Motion Controller device. 
 
-This adapter maintains a representation of the world containing all of the users' blocks and updates it accordingly with the clients’ commands.
+This adapter maintains a representation of the world containing all of the users' blocks and updates it accordingly with the clientsï¿½ commands.
 Each block in the world can be in either one of the following statuses:
 
 * Grabbed: in this case, all the positions are sent to the Lightstreamer server by the client. The server updates the world without any 
@@ -55,11 +55,11 @@ If you want to install a version of this demo in your local Lightstreamer Server
 * Get the `deploy.zip` file of the [latest release](https://github.com/Lightstreamer/Lightstreamer-example-LeapMotion-adapter-java/releases), unzip it, and copy the just unzipped `LeapDemo` folder into the `adapters` folder of your Lightstreamer Server installation.
 * [Optional] Customize logging settings in log4j configuration file `LeapDemo/classes/log4j2.xml`.
 * Launch Lightstreamer Server.
-* Test the Adapter, launching one of the clients listed in [Clients Using This Adapter](https://github.com/Lightstreamer/Lightstreamer-example-LeapMotion-adapter-java#clients-using-this-adapter).
+* Test the Adapter, launching one of the clients listed in [Clients Using This Adapter](#clients-using-this-adapter).
 
 ## Build
 
-To build your own version of `example-LeapMotion-adapter-java-x.y.z.jar`, instead of using the one provided in the `deploy.zip` file from the [Install](https://github.com/Lightstreamer/Lightstreamer-example-LeapMotion-adapter-java#install) section above, you have two options:
+To build your own version of `example-LeapMotion-adapter-java-x.y.z.jar`, instead of using the one provided in the `deploy.zip` file from the [Install](#install) section above, you have two options:
 either use [Maven](https://maven.apache.org/) (or other build tools) to take care of dependencies and building (recommended) or gather the necessary jars yourself and build it manually.
 As a precondition for compiling you need to download [croftsoft](http://sourceforge.net/projects/croftsoft/files/) library and copy the sources of applet, io, jnlp, lang and math packages into `src\main\java\` folder of this project.
 For the sake of simplicity only the Maven case is detailed here.
