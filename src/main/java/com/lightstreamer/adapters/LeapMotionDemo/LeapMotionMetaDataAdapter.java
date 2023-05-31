@@ -17,6 +17,8 @@ package com.lightstreamer.adapters.LeapMotionDemo;
 
 import java.io.File;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.logging.log4j.LogManager;
@@ -135,9 +137,11 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
     }
     
     @Override
-    public void notifyUserMessage(String user, String session, String message)
+    public CompletionStage<String> notifyUserMessage(String user, String session, String message)
             throws CreditsException, NotificationException {
         
+        // we won't introduce blocking operations, hence we can proceed inline
+
         //be sure we can communicate with the data adapter
         this.loadFeed();
         
@@ -224,6 +228,8 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
             logger.warn("unexpected message from "+id+" received: " + message);
             throw new CreditsException(-3, "Unexpected message");
         }
+
+        return CompletableFuture.completedStage(null);
     }
     
     private static double[] getDoubles(String[] values) throws CreditsException {
