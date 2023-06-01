@@ -44,15 +44,10 @@
   </build>
   
   <repositories>
-    <repository>
-      <id>Twitter</id>
-      <name>Twitter repository</name>
-      <url>https://maven.twttr.com/</url>
-    </repository>
 	<repository>
       <id>Anahata</id>
       <name>Anahata Repository</name>
-      <url>http://repo.anahata.uno/artifactory/anahata-public/</url>
+      <url>https://repo.anahata.uno/artifactory/anahata-public/</url>
     </repository>
 	
   </repositories>
