@@ -229,7 +229,7 @@ public class LeapMotionMetaDataAdapter extends LiteralBasedProvider {
             throw new CreditsException(-3, "Unexpected message");
         }
 
-        return CompletableFuture.completedStage(null);
+        return CompletableFuture.completedFuture(null);
     }
     
     private static double[] getDoubles(String[] values) throws CreditsException {
