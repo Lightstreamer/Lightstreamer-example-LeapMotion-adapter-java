@@ -8,7 +8,7 @@
   <packaging>jar</packaging>
 
   <name>example-LeapMotion-adapter-java</name>
-  <url>http://maven.apache.org</url>
+  <url>https://github.com/Lightstreamer/Lightstreamer-example-LeapMotion-adapter-java</url>
 
   <properties>
     <maven.compiler.target>1.8</maven.compiler.target>
