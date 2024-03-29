@@ -52,6 +52,14 @@
   
   </repositories>
 
+  <distributionManagement>
+    <repository>
+      <id>github</id>
+      <name>GitHub Lightstreamer Apache Maven Packages</name>
+      <url>https://maven.pkg.github.com/lightstreamer/Lightstreamer-example-LeapMotion-adapter-java</url>
+    </repository>
+  </distributionManagement>
+
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
