@@ -44,12 +44,12 @@
   </build>
   
   <repositories>
-	<repository>
+  <repository>
       <id>Anahata</id>
       <name>Anahata Repository</name>
       <url>http://repo.anahata.uno/artifactory/anahata-public/</url>
     </repository>
-	
+  
   </repositories>
 
   <dependencies>
