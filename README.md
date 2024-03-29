@@ -27,7 +27,7 @@ server positions.
 
 This Adapter Set is configured and will be referenced by the clients as `LEAPDEMO`. 
 
-The `adapters.xml` file for the *Leap Motion Demo*, should look like:
+The `adapters.xml` file for the *Leap Motion Demo*, should look like this:
 
 ```xml      
 <?xml version="1.0"?>
@@ -50,7 +50,7 @@ Please refer [here](https://lightstreamer.com/docs/ls-server/latest/General%20Co
 
 ## Install
 
-If you want to install a version of this demo in your local Lightstreamer Server, follow these steps:
+If you want to install a version of this demo on your local Lightstreamer Server, follow these steps:
 * Download *Lightstreamer Server* (Lightstreamer Server comes with a free non-expiring demo license for 20 connected users; this should be preferred to using COMMUNITY edition, otherwise you would see a limit on the event rate) from [Lightstreamer Download page](https://lightstreamer.com/download/), and install it, as explained in the `GETTING_STARTED.TXT` file in the installation home directory.
 * Get the `deploy.zip` file of the [latest release](https://github.com/Lightstreamer/Lightstreamer-example-LeapMotion-adapter-java/releases), unzip it, and copy the just unzipped `LeapDemo` folder into the `adapters` folder of your Lightstreamer Server installation.
 * [Optional] Customize logging settings in log4j configuration file `LeapDemo/classes/log4j2.xml`.
@@ -59,10 +59,9 @@ If you want to install a version of this demo in your local Lightstreamer Server
 
 ## Build
 
-To build your own version of `example-LeapMotion-adapter-java-x.y.z.jar`, instead of using the one provided in the `deploy.zip` file from the [Install](#install) section above, you have two options:
+To build your own version of `example-leapmotion-adapter-java-x.y.z.jar`, instead of using the one provided in the `deploy.zip` file from the [Install](#install) section above, you have two options:
 either use [Maven](https://maven.apache.org/) (or other build tools) to take care of dependencies and building (recommended) or gather the necessary jars yourself and build it manually.
-As a precondition for compiling you need to download [croftsoft](http://sourceforge.net/projects/croftsoft/files/) library and copy the sources of applet, io, jnlp, lang and math packages into `src\main\java\` folder of this project.
-For the sake of simplicity only the Maven case is detailed here.
+For the sake of simplicity, only the Maven case is detailed here.
 
 ### Maven
 
@@ -72,8 +71,6 @@ Assuming Maven is installed and available in your path you can build the demo by
 ```sh 
  mvn install dependency:copy-dependencies 
 ```
-
-
 
 ## See Also 
 
@@ -88,7 +85,7 @@ Assuming Maven is installed and available in your path you can build the demo by
 
 
 - Compatible with Lightstreamer SDK for Java In-Process Adapters since version 8.0.
-- For a version of this example compatible with Lightstreamer SDK for Java Adapters versions 7.4.x, please refer to [this tag](https://github.com/Lightstreamer/Lightstreamer-example-LeapMotion-adapter-java/tree/last_for_interface_7.4.x).
+- For a version of this example compatible with Lightstreamer SDK for Java Adapters version 7.4.x, please refer to [this tag](https://github.com/Lightstreamer/Lightstreamer-example-LeapMotion-adapter-java/tree/last_for_interface_7.4.x).
 - For a version of this example compatible with Lightstreamer SDK for Java Adapters versions 7.0 to 7.3, please refer to [this tag](https://github.com/Lightstreamer/Lightstreamer-example-LeapMotion-adapter-java/tree/last_for_interface_7.3).
 - For a version of this example compatible with Lightstreamer SDK for Java Adapters version 6.0, please refer to [this tag](https://github.com/Lightstreamer/Lightstreamer-example-LeapMotion-adapter-java/tree/pre_mvn).
 - For a version of this example compatible with Lightstreamer SDK for Java Adapters version 5.1, please refer to [this tag](https://github.com/Lightstreamer/Lightstreamer-example-LeapMotion-adapter-java/tree/for_Lightstreamer_5.1).
