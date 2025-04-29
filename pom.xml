@@ -4,7 +4,7 @@
 
   <groupId>com.lightstreamer.examples</groupId>
   <artifactId>example-leapmotion-adapter-java</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
   <packaging>jar</packaging>
 
   <name>example-LeapMotion-adapter-java</name>
