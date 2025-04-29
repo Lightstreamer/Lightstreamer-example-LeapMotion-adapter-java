@@ -43,9 +43,9 @@
   
   <repositories>
     <repository>
-      <id>Anahata</id>
-      <name>Anahata Repository</name>
-      <url>http://repo.anahata.uno/artifactory/anahata-public/</url>
+      <id>Freehep</id>
+      <name>Freehep Repository</name>
+      <url>https://java.freehep.org/maven2/</url>
     </repository>
   </repositories>
 
@@ -75,9 +75,9 @@
       <version>2.17.1</version>
     </dependency>
     <dependency>
-      <groupId>javax.jnlp</groupId>
-      <artifactId>jnlp</artifactId>
-      <version>7.0</version>
+        <groupId>javax.jnlp</groupId>
+        <artifactId>jnlp</artifactId>
+        <version>1.2</version>
     </dependency>
   </dependencies>
   
