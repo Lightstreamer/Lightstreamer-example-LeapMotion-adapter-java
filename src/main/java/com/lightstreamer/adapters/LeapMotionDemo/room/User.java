@@ -21,6 +21,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import com.lightstreamer.adapter.data.ItemListener;
+
 
 public class User {
 
@@ -32,8 +34,8 @@ public class User {
     
     private Map<String,String> extraProp = new HashMap<String,String>();
     
-    private Object statusHandle = null;
-    private Object messagesHandle = null;
+    private ItemListener statusHandle = null;
+    private ItemListener messagesHandle = null;
     
     private Set<Room> rooms = new HashSet<Room>();
     private boolean active = false;
@@ -52,7 +54,7 @@ public class User {
         return this.extraProp;
     }
 
-    Object getStatusHandle() {
+    ItemListener getStatusHandle() {
         return this.statusHandle;
     }
 
@@ -106,11 +108,11 @@ public class User {
         return this.status;
     }
     
-    void setStatusHandle(Object statusHandle) {
+    void setStatusHandle(ItemListener statusHandle) {
         this.statusHandle = statusHandle;
     }
 
-    void setHandle(Object messagesHandle) {
+    void setHandle(ItemListener messagesHandle) {
         this.messagesHandle = messagesHandle;
     }
     

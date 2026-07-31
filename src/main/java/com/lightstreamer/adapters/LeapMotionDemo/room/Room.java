@@ -19,13 +19,15 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import com.lightstreamer.adapter.data.ItemListener;
+
 class Room {
     
     private final ChatRoom chatRoom;
     private String roomId;
     private Set<String> users = new HashSet<String>();
-    private Object statusHandle = null;
-    private Object messageHandle = null;
+    private ItemListener statusHandle = null;
+    private ItemListener messageHandle = null;
     
     public Room(ChatRoom chatRoom, String roomId) {
         this.chatRoom = chatRoom;
@@ -50,11 +52,11 @@ class Room {
         return this.statusHandle != null || this.messageHandle != null;
     }
 
-    public void setStatusHandle(Object roomStatusHandle) {
+    public void setStatusHandle(ItemListener roomStatusHandle) {
         this.statusHandle = roomStatusHandle;
     }
     
-    public void setMessageHandle(Object messageHandle) {
+    public void setMessageHandle(ItemListener messageHandle) {
         this.messageHandle = messageHandle;
     }
     

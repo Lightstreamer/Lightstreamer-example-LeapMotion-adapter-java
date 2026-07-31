@@ -35,6 +35,9 @@ The `adapters.xml` file for the *Leap Motion Demo*, should look like this:
 <adapters_conf id="LEAPDEMO">
     <metadata_provider>
         <adapter_class>com.lightstreamer.adapters.LeapMotionDemo.LeapMotionMetaDataAdapter</adapter_class>
+
+        <!-- Ensure compatibility with old versions of the demo Clients. -->
+        <support_LiteralBased_subscriptions>Y</support_LiteralBased_subscriptions>
     </metadata_provider>
     
     <data_provider>
@@ -84,7 +87,8 @@ Assuming Maven is installed and available in your path you can build the demo by
 ## Lightstreamer Compatibility Notes
 
 
-- Compatible with Lightstreamer SDK for Java In-Process Adapters since version 8.0.
+- Compatible with Lightstreamer SDK for Java In-Process Adapters since version 9.0.
+- For a version of this example compatible with Lightstreamer SDK for Java In-Process Adapters versions 8.x, please refer to [this tag](https://github.com/Lightstreamer/Lightstreamer-example-LeapMotion-adapter-java/tree/XXXXXXXXXXXXXXXXXXXXX).
 - For a version of this example compatible with Lightstreamer SDK for Java Adapters version 7.4.x, please refer to [this tag](https://github.com/Lightstreamer/Lightstreamer-example-LeapMotion-adapter-java/tree/last_for_interface_7.4.x).
 - For a version of this example compatible with Lightstreamer SDK for Java Adapters versions 7.0 to 7.3, please refer to [this tag](https://github.com/Lightstreamer/Lightstreamer-example-LeapMotion-adapter-java/tree/last_for_interface_7.3).
 - For a version of this example compatible with Lightstreamer SDK for Java Adapters version 6.0, please refer to [this tag](https://github.com/Lightstreamer/Lightstreamer-example-LeapMotion-adapter-java/tree/pre_mvn).

@@ -21,6 +21,7 @@ import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.lightstreamer.adapter.data.ItemListener;
 import com.lightstreamer.adapters.LeapMotionDemo.Constants;
 
 public class Universe {
@@ -67,7 +68,7 @@ public class Universe {
         world.addUser(id);
     }
     
-    public synchronized void startWatchingWorld(String id, Object handle) {
+    public synchronized void startWatchingWorld(String id, ItemListener handle) {
         logger.info("Start watching world: " + id);
         
         World world = this.getWorldForced(id);

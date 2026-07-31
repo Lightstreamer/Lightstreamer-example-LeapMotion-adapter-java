@@ -24,6 +24,7 @@ import java.util.concurrent.Executors;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.lightstreamer.adapter.data.ItemListener;
 import com.lightstreamer.adapters.LeapMotionDemo.Constants;
 
 public class World extends Thread {
@@ -46,7 +47,7 @@ public class World extends Thread {
     private UniverseListener listener;
     
     private ConcurrentHashMap<String,BaseModelBody> users = new ConcurrentHashMap<String,BaseModelBody>();
-    private Object handle = null;
+    private ItemListener handle = null;
     
     private int frameInterval = 0;
     private double factorWorld = 1.0;
@@ -77,7 +78,7 @@ public class World extends Thread {
         return users.isEmpty();
     }
     
-    synchronized void setHandle(Object handle) {
+    synchronized void setHandle(ItemListener handle) {
         
         this.handle = handle;
         
@@ -92,7 +93,7 @@ public class World extends Thread {
             }
             
             final String fid = this.id;
-            final Object fhandle = this.handle;
+            final ItemListener fhandle = this.handle;
             executor.execute(new Runnable() {
                 public void run() {
                     listener.onWorldComplete(fid,fhandle);
@@ -160,7 +161,7 @@ public class World extends Thread {
         }
     }
       
-    private synchronized void sendPlayerStatus(final String id, final String worldId, final Object worldHandle, BaseModelBody player, final int updateType, final boolean isRealTime) {
+    private synchronized void sendPlayerStatus(final String id, final String worldId, final ItemListener worldHandle, BaseModelBody player, final int updateType, final boolean isRealTime) {
         if (updateType == ENTER) {
             logger.debug(this.id+"|Preparing enter event for " + id);
             
@@ -188,7 +189,7 @@ public class World extends Thread {
         }
     }
     
-    private synchronized void sendPlayerPosition(final String id, final String worldId, final Object worldHandle, BaseModelBody player, final boolean forced) {
+    private synchronized void sendPlayerPosition(final String id, final String worldId, final ItemListener worldHandle, BaseModelBody player, final boolean forced) {
         if (logger.isTraceEnabled()) {
             logger.trace(this.id+"|Preparing position event for " + id);
         }
@@ -205,7 +206,7 @@ public class World extends Thread {
         });
     }
     
-    private synchronized void sendPlayerAction(final String id, final String worldId, final Object worldHandle, BaseModelBody player) {
+    private synchronized void sendPlayerAction(final String id, final String worldId, final ItemListener worldHandle, BaseModelBody player) {
         if (logger.isTraceEnabled()) {
             logger.trace(this.id+"|Preparing action event for " + id);
         }

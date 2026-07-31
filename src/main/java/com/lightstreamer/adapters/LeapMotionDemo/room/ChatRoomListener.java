@@ -17,16 +17,18 @@ package com.lightstreamer.adapters.LeapMotionDemo.room;
 
 import java.util.Map;
 
+import com.lightstreamer.adapter.data.ItemListener;
+
 public interface ChatRoomListener {
 
-    public void onUserEnter(User user, String room, Object roomStatusHandle, boolean realTimeEvent);
-    public void onRoomListComplete(String id, Object roomStatusHandle);
-    public void onUserExit(User user, String room, Object roomStatusHandle);
+    public void onUserEnter(User user, String room, ItemListener roomStatusHandle, boolean realTimeEvent);
+    public void onRoomListComplete(String id, ItemListener roomStatusHandle);
+    public void onUserExit(User user, String room, ItemListener roomStatusHandle);
     
-    public void onUserStatusChange(User user, String nick, String statusId, String status, Map<String,String> extra, Object userStatusHandle, boolean realTimeEvent);
+    public void onUserStatusChange(User user, String nick, String statusId, String status, Map<String,String> extra, ItemListener userStatusHandle, boolean realTimeEvent);
     
-    public void onUserMessage(String user, String message, String room, Object roomHandle, boolean realTimeEvent);
-    public void onPrivateMessage(String fromId, String toId, String message, Object userHandle); //not implemented  
+    public void onUserMessage(String user, String message, String room, ItemListener roomHandle, boolean realTimeEvent);
+    public void onPrivateMessage(String fromId, String toId, String message, ItemListener userHandle); //not implemented  
     
     public void onNewUser(String id);
     public void onUserDeleted(String id);

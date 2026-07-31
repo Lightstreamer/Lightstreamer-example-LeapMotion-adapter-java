@@ -18,35 +18,33 @@ package com.lightstreamer.adapters.LeapMotionDemo;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.lightstreamer.adapter.common.InitException;
+import com.lightstreamer.adapter.common.Mode;
+import com.lightstreamer.adapter.data.DataAdapter;
+import com.lightstreamer.adapter.data.ItemListener;
+import com.lightstreamer.adapter.data.ItemManager;
+import com.lightstreamer.adapter.data.SubscriptionException;
 import com.lightstreamer.adapters.LeapMotionDemo.engine3D.Universe;
 import com.lightstreamer.adapters.LeapMotionDemo.engine3D.UniverseListener;
 import com.lightstreamer.adapters.LeapMotionDemo.room.ChatRoom;
 import com.lightstreamer.adapters.LeapMotionDemo.room.ChatRoomListener;
 import com.lightstreamer.adapters.LeapMotionDemo.room.User;
-import com.lightstreamer.interfaces.data.DataProviderException;
-import com.lightstreamer.interfaces.data.FailureException;
-import com.lightstreamer.interfaces.data.ItemEventListener;
-import com.lightstreamer.interfaces.data.SmartDataProvider;
-import com.lightstreamer.interfaces.data.SubscriptionException;
 
-public class LeapMotionDataAdapter implements SmartDataProvider, UniverseListener, ChatRoomListener {
+public class LeapMotionDataAdapter implements DataAdapter, UniverseListener, ChatRoomListener {
 
-    public static final ConcurrentHashMap<String, LeapMotionDataAdapter> feedMap =
-            new ConcurrentHashMap<String, LeapMotionDataAdapter>();
-   
     private Logger logger;
     
-    private Universe universe = new Universe(this);
-    private ChatRoom chat = new ChatRoom(this);
-    private ItemEventListener listener;
+    private final Universe universe = new Universe(this);
+    private final ChatRoom chat = new ChatRoom(this);
     
     @Override
-    public void init(Map params, File configDir) throws DataProviderException {
+    public void init(Map<String, String> params, File configDir) throws InitException {
         /*
         String logConfig = (String) params.get("log_config");
         if (logConfig != null) {
@@ -64,20 +62,7 @@ public class LeapMotionDataAdapter implements SmartDataProvider, UniverseListene
         
         logger.info("Adapter Logger start.");
         
-        // Read the Adapter Set name, which is supplied by the Server as a parameter
-        String adapterSetId = (String) params.get("adapters_conf.id");
-        
-        // Put a reference to this instance on a static map
-        // to be read by the Metadata Adapter
-        feedMap.put(adapterSetId, this);
-        
         logger.info("LeapMotionDataAdapter ready");
-        
-    }
-    
-    @Override
-    public void setListener(ItemEventListener listener) {
-        this.listener = listener;
     }
 
     ChatRoom getChatFeed() {
@@ -89,125 +74,218 @@ public class LeapMotionDataAdapter implements SmartDataProvider, UniverseListene
     }
 
     @Override
-    public boolean isSnapshotAvailable(String item)
-            throws SubscriptionException {
+    public CompletionStage<ItemManager> getItemManager(String itemName) {
+        String val;
+        if (( val = Constants.getVal(itemName, Constants.USER_SUBSCRIPTION)) != null) {
+            return CompletableFuture.completedFuture(new UserMessageItemManager(val, itemName));
+        } else if (itemName.indexOf(Constants.ROOMPOSITION_SUBSCRIPTION) == 0) {
+            String roomId = itemName.substring(Constants.ROOMPOSITION_SUBSCRIPTION.length());
+            return CompletableFuture.completedFuture(new RoomPositionItemManager(roomId, itemName));
+        } else if (itemName.indexOf(Constants.ROOMCHATLIST_SUBSCRIPTION) == 0) {
+            String roomId = itemName.substring(Constants.ROOMCHATLIST_SUBSCRIPTION.length());
+            return CompletableFuture.completedFuture(new RoomChatListItemManager(roomId, itemName));
+        } else {
+            return CompletableFuture.completedFuture(new UserStatusItemManager(itemName));
+        }
+    }
 
-        if (item.indexOf(Constants.USER_SUBSCRIPTION) == 0) { 
+    /**
+     * DISTINCT item for user message presence signals.
+     */
+    private class UserMessageItemManager implements ItemManager {
+        private final String userId;
+        private final String item;
+
+        UserMessageItemManager(String userId, String item) {
+            this.userId = userId;
+            this.item = item;
+        }
+
+        @Override
+        public Mode getSupportedMode() {
+            return Mode.DISTINCT;
+        }
+
+        @Override
+        public Integer getDistinctSnapshotLength() {
+            return 30;
+        }
+
+        @Override
+        public boolean isSnapshotAvailable() {
             return false; //currently does not generate any event at all (and never will)
-        } else if (item.indexOf(Constants.ROOMPOSITION_SUBSCRIPTION) == 0) {
-            return true;
-        } else if (item.indexOf(Constants.ROOMCHATLIST_SUBSCRIPTION) == 0) {
-            return true;
-        } else {
-            return true; 
         }
-    }
 
-    
-    @Override
-    public synchronized void subscribe(String item, Object handle, boolean needsIterator)
-            throws SubscriptionException, FailureException {
-
-        String val;
-        if (( val = Constants.getVal(item,Constants.USER_SUBSCRIPTION)) != null) {
-            //DISTINCT used only to signal presence
+        @Override
+        public CompletionStage<Void> subscribe(ItemListener listener) {
             logger.debug("User subscription: " + item);
-            
             //user is created on subscription and destroyed on unsubscription
-            chat.startUserMessageListen(val,handle);
-            
-        } else if (item.indexOf(Constants.ROOMPOSITION_SUBSCRIPTION) == 0) {
-            //COMMAND contains list of users and object positions
-            logger.debug("Position subscription: " + item);
-            
-            String roomId = item.substring(Constants.ROOMPOSITION_SUBSCRIPTION.length());
-            
-            universe.startWatchingWorld(roomId, handle);
-            
-        } else if (item.indexOf(Constants.ROOMCHATLIST_SUBSCRIPTION) == 0) {
-            //COMMAND contains users of a certain room
-            logger.debug("Room list subscription: " + item);
-            
-            String roomId = item.substring(Constants.ROOMCHATLIST_SUBSCRIPTION.length());
-            chat.startRoomListen(roomId,handle);// will add the room if non-existent (room may exist if a user entered it even if no one is listening to it)
+            chat.startUserMessageListen(userId, listener);
+            return CompletableFuture.completedFuture(null);
+        }
 
-        } else {
-            //MERGE subscription for user status and nick + their commands and forced positions 
-            logger.debug("User status subscription: " + item);
-            chat.startUserStatusListen(item,handle);
+        @Override
+        public CompletionStage<Void> unsubscribe() {
+            logger.debug("User unsubscription: " + item);
+            chat.stopUserMessageListen(userId);
+            return CompletableFuture.completedFuture(null);
         }
     }
 
-    @Override
-    public synchronized void unsubscribe(String item) throws SubscriptionException,
-            FailureException {
-        
-        String val;
-        if (( val = Constants.getVal(item,Constants.USER_SUBSCRIPTION)) != null) {
-            logger.debug("User unsubscription: " + item);
-            
-            chat.stopUserMessageListen(val);
-            
-        } else if (item.indexOf(Constants.ROOMPOSITION_SUBSCRIPTION) == 0) {
+    /**
+     * COMMAND item for the list of users and object positions in a world.
+     */
+    private class RoomPositionItemManager implements ItemManager {
+        private final String roomId;
+        private final String item;
+
+        RoomPositionItemManager(String roomId, String item) {
+            this.roomId = roomId;
+            this.item = item;
+        }
+
+        @Override
+        public Mode getSupportedMode() {
+            return Mode.COMMAND;
+        }
+
+        @Override
+        public boolean isSnapshotAvailable() {
+            return true;
+        }
+
+        @Override
+        public CompletionStage<Void> subscribe(ItemListener listener) {
+            logger.debug("Position subscription: " + item);
+            universe.startWatchingWorld(roomId, listener);
+            return CompletableFuture.completedFuture(null);
+        }
+
+        @Override
+        public CompletionStage<Void> unsubscribe() {
             logger.debug("Position unsubscription: " + item);
-            
-            String roomId = item.substring(Constants.ROOMPOSITION_SUBSCRIPTION.length());
-            
             universe.stopWatchingWorld(roomId);
-            
-        } else if (item.indexOf(Constants.ROOMCHATLIST_SUBSCRIPTION) == 0) {
+            return CompletableFuture.completedFuture(null);
+        }
+    }
+
+    /**
+     * COMMAND item for the list of users in a chat room.
+     */
+    private class RoomChatListItemManager implements ItemManager {
+        private final String roomId;
+        private final String item;
+
+        RoomChatListItemManager(String roomId, String item) {
+            this.roomId = roomId;
+            this.item = item;
+        }
+
+        @Override
+        public Mode getSupportedMode() {
+            return Mode.COMMAND;
+        }
+
+        @Override
+        public boolean isSnapshotAvailable() {
+            return true;
+        }
+
+        @Override
+        public CompletionStage<Void> subscribe(ItemListener listener) {
+            logger.debug("Room list subscription: " + item);
+            chat.startRoomListen(roomId, listener);// will add the room if non-existent (room may exist if a user entered it even if no one is listening to it)
+            return CompletableFuture.completedFuture(null);
+        }
+
+        @Override
+        public CompletionStage<Void> unsubscribe() {
             logger.debug("Room list unsubscription: " + item);
-            
-            String roomId = item.substring(Constants.ROOMCHATLIST_SUBSCRIPTION.length());
             chat.stopRoomListen(roomId);
-        } else {
+            return CompletableFuture.completedFuture(null);
+        }
+    }
+
+    /**
+     * MERGE item for user status, nick, commands, and forced positions.
+     */
+    private class UserStatusItemManager implements ItemManager {
+        private final String item;
+
+        UserStatusItemManager(String item) {
+            this.item = item;
+        }
+
+        @Override
+        public Mode getSupportedMode() {
+            return Mode.MERGE;
+        }
+
+        @Override
+        public boolean isSnapshotAvailable() {
+            return true;
+        }
+
+        @Override
+        public CompletionStage<Void> subscribe(ItemListener listener) {
+            logger.debug("User status subscription: " + item);
+            chat.startUserStatusListen(item, listener);
+            return CompletableFuture.completedFuture(null);
+        }
+
+        @Override
+        public CompletionStage<Void> unsubscribe() {
             logger.debug("User status unsubscription: " + item);
-            
             chat.stopUserStatusListen(item);
+            return CompletableFuture.completedFuture(null);
         }
     }
     
     //user related events sequentiality is ensured by the chat class; are only generated if there is the associated handle  
 
     @Override
-    public void onUserEnter(User user, String room, Object roomStatusHandle, boolean realTimeEvent) {
+    public void onUserEnter(User user, String room, ItemListener roomStatusHandle, boolean realTimeEvent) {
         String id = user.getId();
         logger.debug(id + " enters " + room);
         
         HashMap<String, String> update = new HashMap<String, String>();
-        update.put(SmartDataProvider.KEY_FIELD, id);
-        update.put(SmartDataProvider.COMMAND_FIELD, SmartDataProvider.ADD_COMMAND);
+        update.put(ItemListener.KEY_FIELD, id);
+        update.put(ItemListener.COMMAND_FIELD, ItemListener.ADD_COMMAND);
               
-        this.listener.smartUpdate(roomStatusHandle, update, !realTimeEvent);
+        if (realTimeEvent) {
+            roomStatusHandle.update(update);
+        } else {
+            roomStatusHandle.snapshot(update, null);
+        }
         
         universe.addPlayerToWorld(id,room);
         
     }
     
     @Override
-    public void onRoomListComplete(String id, Object roomStatusHandle) {
+    public void onRoomListComplete(String id, ItemListener roomStatusHandle) {
         logger.debug(id + " filled");
         
-        this.listener.smartEndOfSnapshot(roomStatusHandle);
+        roomStatusHandle.endOfSnapshot();
     }
 
     @Override
-    public void onUserExit(User user, String room, Object roomStatusHandle) {
+    public void onUserExit(User user, String room, ItemListener roomStatusHandle) {
         String id = user.getId();
         logger.debug(id + " exits " + room);
         
         HashMap<String, String> update = new HashMap<String, String>();
-        update.put(SmartDataProvider.KEY_FIELD, id);
-        update.put(SmartDataProvider.COMMAND_FIELD, SmartDataProvider.DELETE_COMMAND);
+        update.put(ItemListener.KEY_FIELD, id);
+        update.put(ItemListener.COMMAND_FIELD, ItemListener.DELETE_COMMAND);
         
-        this.listener.smartUpdate(roomStatusHandle, update, false);
+        roomStatusHandle.update(update);
         
         universe.removePlayerFromWorld(id,room);
     }
 
     
     @Override
-    public void onUserStatusChange(User user, String nick, String statusId, String status, Map<String,String> extra, Object userStatusHandle, boolean realTimeEvent) {
+    public void onUserStatusChange(User user, String nick, String statusId, String status, Map<String,String> extra, ItemListener userStatusHandle, boolean realTimeEvent) {
         String id = user.getId();
         logger.debug(id + " has new status/nick");
         
@@ -223,20 +301,24 @@ public class LeapMotionDataAdapter implements SmartDataProvider, UniverseListene
             extra.put("statusId", statusId);
         }
         
-        this.listener.smartUpdate(userStatusHandle, extra, !realTimeEvent);
+        if (realTimeEvent) {
+            userStatusHandle.update(extra);
+        } else {
+            userStatusHandle.snapshot(extra, null);
+        }
         
         //note: in case of a !realtime event, if we assign an initial movement to the players we'll have to check if the player for this user already exists and grab its forces
         
     }
 
     @Override
-    public void onUserMessage(String id, String message, String room, Object roomHandle, boolean realTimeEvent) {
+    public void onUserMessage(String id, String message, String room, ItemListener roomHandle, boolean realTimeEvent) {
       //not used
         logger.debug(id + " sent a message to " + room);
     }
 
     @Override
-    public void onPrivateMessage(String fromId, String toId, String message, Object userHandle) { //always realtime (can't send messages to disconnected users)
+    public void onPrivateMessage(String fromId, String toId, String message, ItemListener userHandle) { //always realtime (can't send messages to disconnected users)
       //not used - not implemented
         logger.debug(toId + " got a private message from " + fromId);
     }
@@ -256,32 +338,36 @@ public class LeapMotionDataAdapter implements SmartDataProvider, UniverseListene
     // universe events are generated even if there is no handle
     
     @Override
-    public void onWorldComplete(String worldId, Object worldHandle) {
+    public void onWorldComplete(String worldId, ItemListener worldHandle) {
         logger.debug("World " + worldId + " flushed");
         
         if (worldHandle != null) {
-            this.listener.smartEndOfSnapshot(worldHandle);
+            worldHandle.endOfSnapshot();
         }
     }
 
     @Override
-    public void onPlayerCreated(String id, String worldId, Object worldHandle, HashMap<String,String> currentPosition,  HashMap<String,String> currentImpulses, boolean realTimeEvent) {
+    public void onPlayerCreated(String id, String worldId, ItemListener worldHandle, HashMap<String,String> currentPosition,  HashMap<String,String> currentImpulses, boolean realTimeEvent) {
         logger.debug(id + " enters world " + worldId);
         
         if (worldHandle != null) {
-            currentPosition.put(SmartDataProvider.KEY_FIELD, id);
-            currentPosition.put(SmartDataProvider.COMMAND_FIELD, SmartDataProvider.ADD_COMMAND); 
-            this.listener.smartUpdate(worldHandle, currentPosition, !realTimeEvent);
+            currentPosition.put(ItemListener.KEY_FIELD, id);
+            currentPosition.put(ItemListener.COMMAND_FIELD, ItemListener.ADD_COMMAND); 
+            if (realTimeEvent) {
+                worldHandle.update(currentPosition);
+            } else {
+                worldHandle.snapshot(currentPosition, null);
+            }
         }
         
-        Object userHandle = chat.getUserStatusHandle(id);
+        ItemListener userHandle = chat.getUserStatusHandle(id);
         if (userHandle != null) {
-            this.listener.smartUpdate(userHandle, currentImpulses, false);
+            userHandle.update(currentImpulses);
         }
     }
     
     @Override
-    public void onPlayerMoved(String id, String worldId, Object worldHandle,
+    public void onPlayerMoved(String id, String worldId, ItemListener worldHandle,
             HashMap<String, String> currentPosition, boolean forced) {
         
         if (logger.isTraceEnabled()) {
@@ -290,51 +376,45 @@ public class LeapMotionDataAdapter implements SmartDataProvider, UniverseListene
         
         if (!forced) {
             if (worldHandle != null) {
-                currentPosition.put(SmartDataProvider.KEY_FIELD, id);
-                currentPosition.put(SmartDataProvider.COMMAND_FIELD, SmartDataProvider.UPDATE_COMMAND);
-                this.listener.smartUpdate(worldHandle, currentPosition, false);
+                currentPosition.put(ItemListener.KEY_FIELD, id);
+                currentPosition.put(ItemListener.COMMAND_FIELD, ItemListener.UPDATE_COMMAND);
+                worldHandle.update(currentPosition);
             }
         } else {
-            Object userHandle = chat.getUserStatusHandle(id);
+            ItemListener userHandle = chat.getUserStatusHandle(id);
             if (userHandle != null) {
-                this.listener.smartUpdate(userHandle, currentPosition, false);
+                userHandle.update(currentPosition);
             }
         }
     }
 
     @Override
-    public void onPlayerActed(String id, String worldId, Object worldHandle,
+    public void onPlayerActed(String id, String worldId, ItemListener worldHandle,
             HashMap<String, String> currentImpulses) {
         
         if (logger.isTraceEnabled()) {
             logger.trace(id + " in world " + worldId + " acts"); //block/release actions
         }
         
-        Object userHandle = chat.getUserStatusHandle(id);
+        ItemListener userHandle = chat.getUserStatusHandle(id);
         if (userHandle != null) {
-            this.listener.smartUpdate(userHandle, currentImpulses, false);
+            userHandle.update(currentImpulses);
         }
     }
 
     @Override
-    public void onPlayerDisposed(String id, String worldId, Object worldHandle) {
+    public void onPlayerDisposed(String id, String worldId, ItemListener worldHandle) {
         logger.debug(id + " exits world " + worldId);
         if (worldHandle != null) {
             HashMap<String, String> update = new HashMap<String, String>();
-            update.put(SmartDataProvider.KEY_FIELD, id);
-            update.put(SmartDataProvider.COMMAND_FIELD, SmartDataProvider.DELETE_COMMAND);
+            update.put(ItemListener.KEY_FIELD, id);
+            update.put(ItemListener.COMMAND_FIELD, ItemListener.DELETE_COMMAND);
             
-            this.listener.smartUpdate(worldHandle, update, false);
+            worldHandle.update(update);
         }
     }
-    
-    
-    @Override
-    public void subscribe(String arg0, boolean arg1)
-            throws SubscriptionException, FailureException {
-        // unused
-        logger.error("Unexpected call");
-        throw new SubscriptionException("Unexpected call");
-    }
 
+    @Override
+    public void shutdown() {
+    }
 }
